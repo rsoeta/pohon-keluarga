@@ -101,7 +101,7 @@ Buat repositori privat di GitHub, lalu masuk ke **Settings → Secrets and varia
 | `SSH_PORT` | Port SSH hosting Anda (mis. `22` atau `21098`) |
 | `SSH_USERNAME` | Username login cPanel Anda (mis. `u1234567`) |
 | `SSH_PRIVATE_KEY` | Seluruh isi file private key `~/.ssh/cpanel_pohon_keluarga` (dari `-----BEGIN OPENSSH PRIVATE KEY-----` hingga `-----END OPENSSH PRIVATE KEY-----`) |
-| `CPANEL_TARGET_DIR` | Path **Document Root** domain dari Langkah 1 (mis. `/home/u1234567/www.altasim.studio-pasti.net`) |
+| `CPANEL_TARGET_DIR` | Path **Document Root** domain dari Langkah 1; mendukung format absolut (`/home/u1234567/www.altasim.studio-pasti.net`), berbasis home (`~/www.altasim.studio-pasti.net`), maupun relatif dari `$HOME` seperti di cPanel (`public_html` atau `www.altasim.studio-pasti.net`) |
 | `SSH_KNOWN_HOSTS` | *(Opsional, disarankan)* Output dari `ssh-keyscan -p PORT_SSH HOST_CPANEL` |
 
 ##### Langkah 4 — Hubungkan Git & Push Pertama

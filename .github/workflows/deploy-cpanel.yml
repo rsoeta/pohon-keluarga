@@ -40,6 +40,20 @@ jobs:
           CPANEL_TARGET_DIR: ${{ secrets.CPANEL_TARGET_DIR }}
         run: |
           set -euo pipefail
+          trim() {
+            local v="$1"
+            v="${v//$'\r'/}"
+            v="${v//$'\n'/}"
+            v="${v#"${v%%[![:space:]]*}"}"
+            v="${v%"${v##*[![:space:]]}"}"
+            printf '%s' "$v"
+          }
+
+          VITE_API_URL="$(trim "${VITE_API_URL:-}")"
+          SSH_HOST="$(trim "${SSH_HOST:-}")"
+          SSH_USERNAME="$(trim "${SSH_USERNAME:-}")"
+          CPANEL_TARGET_DIR="$(trim "${CPANEL_TARGET_DIR:-}")"
+
           for var in VITE_API_URL SSH_HOST SSH_USERNAME SSH_PRIVATE_KEY CPANEL_TARGET_DIR; do
             if [ -z "${!var:-}" ]; then
               echo "::error::Secret $var wajib diisi di GitHub Repository Secrets."
@@ -50,18 +64,26 @@ jobs:
             echo "::error::VITE_API_URL wajib diawali https://."
             exit 1
           fi
-          if [[ "$CPANEL_TARGET_DIR" == "/" || "$CPANEL_TARGET_DIR" == *".."* ]] || [[ ! "$CPANEL_TARGET_DIR" =~ ^(~\/|\/)[A-Za-z0-9_./-]+$ ]]; then
-            echo "::error::CPANEL_TARGET_DIR tidak valid. Gunakan path lengkap seperti /home/username/public_html atau ~/public_html/sub."
+
+          RE='^(~/|/)?[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)*/?$'
+          if [ "$CPANEL_TARGET_DIR" = "/" ] || [ "$CPANEL_TARGET_DIR" = "." ] || [[ "$CPANEL_TARGET_DIR" == *".."* ]] || [[ ! "$CPANEL_TARGET_DIR" =~ $RE ]]; then
+            echo "::error::CPANEL_TARGET_DIR tidak valid. Contoh valid: /home/username/public_html, ~/public_html, atau public_html/sub."
             exit 1
           fi
 
       - name: Instal dependensi & Build produksi PWA
         working-directory: frontend
         env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          RAW_VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_APP_DOMAIN: www.altasim.studio-pasti.net
           VITE_DEBUG: 'false'
         run: |
+          set -euo pipefail
+          VITE_API_URL="${RAW_VITE_API_URL//$'\r'/}"
+          VITE_API_URL="${VITE_API_URL//$'\n'/}"
+          VITE_API_URL="${VITE_API_URL#"${VITE_API_URL%%[![:space:]]*}"}"
+          VITE_API_URL="${VITE_API_URL%"${VITE_API_URL##*[![:space:]]}"}"
+          export VITE_API_URL
           npm ci
           npm run build
 
@@ -73,13 +95,24 @@ jobs:
           SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
-          PORT="${SSH_PORT:-22}"
+          trim() {
+            local v="$1"
+            v="${v//$'\r'/}"
+            v="${v//$'\n'/}"
+            v="${v#"${v%%[![:space:]]*}"}"
+            v="${v%"${v##*[![:space:]]}"}"
+            printf '%s' "$v"
+          }
+          SSH_HOST="$(trim "${SSH_HOST:-}")"
+          PORT="$(trim "${SSH_PORT:-22}")"
+          [ -z "$PORT" ] && PORT="22"
+
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "${SSH_PRIVATE_KEY//$'\r'/}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           if [ -n "${SSH_KNOWN_HOSTS:-}" ]; then
-            printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+            printf '%s\n' "${SSH_KNOWN_HOSTS//$'\r'/}" > ~/.ssh/known_hosts
           else
             ssh-keyscan -p "$PORT" -H "$SSH_HOST" > ~/.ssh/known_hosts
           fi
@@ -93,9 +126,23 @@ jobs:
           CPANEL_TARGET_DIR: ${{ secrets.CPANEL_TARGET_DIR }}
         run: |
           set -euo pipefail
-          PORT="${SSH_PORT:-22}"
+          trim() {
+            local v="$1"
+            v="${v//$'\r'/}"
+            v="${v//$'\n'/}"
+            v="${v#"${v%%[![:space:]]*}"}"
+            v="${v%"${v##*[![:space:]]}"}"
+            printf '%s' "$v"
+          }
+          SSH_HOST="$(trim "${SSH_HOST:-}")"
+          SSH_USERNAME="$(trim "${SSH_USERNAME:-}")"
+          CPANEL_TARGET_DIR="$(trim "${CPANEL_TARGET_DIR:-}")"
+          CPANEL_TARGET_DIR="${CPANEL_TARGET_DIR%/}"
+          PORT="$(trim "${SSH_PORT:-22}")"
+          [ -z "$PORT" ] && PORT="22"
+
           SSH_CMD="ssh -i $HOME/.ssh/deploy_key -p $PORT -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
-          $SSH_CMD "${SSH_USERNAME}@${SSH_HOST}" "TARGET='$CPANEL_TARGET_DIR'; case \"\$TARGET\" in '~/'*) TARGET=\"\$HOME/\${TARGET#~/}\" ;; esac; mkdir -p \"\$TARGET\""
+          $SSH_CMD "${SSH_USERNAME}@${SSH_HOST}" "TARGET='$CPANEL_TARGET_DIR'; case \"\$TARGET\" in '~/'*) TARGET=\"\$HOME/\${TARGET#~/}\" ;; /*) ;; *) TARGET=\"\$HOME/\$TARGET\" ;; esac; mkdir -p \"\$TARGET\""
 
           if $SSH_CMD "${SSH_USERNAME}@${SSH_HOST}" "command -v rsync >/dev/null 2>&1"; then
             rsync -avz --delete \
@@ -103,10 +150,10 @@ jobs:
               --exclude='cgi-bin/' \
               --exclude='error_log' \
               -e "$SSH_CMD" \
-              frontend/dist/ "${SSH_USERNAME}@${SSH_HOST}:${CPANEL_TARGET_DIR%/}/"
+              frontend/dist/ "${SSH_USERNAME}@${SSH_HOST}:${CPANEL_TARGET_DIR}/"
           else
             tar -C frontend/dist -czf - . | $SSH_CMD "${SSH_USERNAME}@${SSH_HOST}" \
-              "TARGET='$CPANEL_TARGET_DIR'; case \"\$TARGET\" in '~/'*) TARGET=\"\$HOME/\${TARGET#~/}\" ;; esac; find \"\$TARGET\" -mindepth 1 -maxdepth 1 ! -name '.well-known' ! -name 'cgi-bin' ! -name 'error_log' -exec rm -rf {} + && tar -xzf - -C \"\$TARGET\""
+              "TARGET='$CPANEL_TARGET_DIR'; case \"\$TARGET\" in '~/'*) TARGET=\"\$HOME/\${TARGET#~/}\" ;; /*) ;; *) TARGET=\"\$HOME/\$TARGET\" ;; esac; find \"\$TARGET\" -mindepth 1 -maxdepth 1 ! -name '.well-known' ! -name 'cgi-bin' ! -name 'error_log' -exec rm -rf {} + && tar -xzf - -C \"\$TARGET\""
           fi
 
       - name: Bersihkan kunci SSH sementara
