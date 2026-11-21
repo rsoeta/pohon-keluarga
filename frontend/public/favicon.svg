@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <rect width="128" height="128" rx="28" fill="#0f766e" />
+  <rect x="8" y="8" width="112" height="112" rx="22" stroke="#5eead4" stroke-opacity="0.28" stroke-width="2" />
+  <!-- Garis penghubung silsilah -->
+  <path d="M64 42V62M64 62H36V80M64 62H92V80M64 62V82" stroke="#ccfbf1" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Simpul leluhur utama (emas) -->
+  <circle cx="64" cy="34" r="13" fill="#f59e0b" stroke="#fffbeb" stroke-width="4" />
+  <!-- Simpul keturunan -->
+  <circle cx="36" cy="90" r="11" fill="#f0fdfa" stroke="#2dd4bf" stroke-width="3.5" />
+  <circle cx="64" cy="92" r="11" fill="#f0fdfa" stroke="#2dd4bf" stroke-width="3.5" />
+  <circle cx="92" cy="90" r="11" fill="#f0fdfa" stroke="#2dd4bf" stroke-width="3.5" />
+</svg>

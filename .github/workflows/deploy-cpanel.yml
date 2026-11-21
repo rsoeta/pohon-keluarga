@@ -1,0 +1,114 @@
+name: Deploy PWA ke Shared Hosting / cPanel via SSH
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-cpanel.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-cpanel-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repositori
+        uses: actions/checkout@v4
+
+      - name: Siapkan Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Validasi secrets wajib
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          CPANEL_TARGET_DIR: ${{ secrets.CPANEL_TARGET_DIR }}
+        run: |
+          set -euo pipefail
+          for var in VITE_API_URL SSH_HOST SSH_USERNAME SSH_PRIVATE_KEY CPANEL_TARGET_DIR; do
+            if [ -z "${!var:-}" ]; then
+              echo "::error::Secret $var wajib diisi di GitHub Repository Secrets."
+              exit 1
+            fi
+          done
+          if [[ ! "$VITE_API_URL" =~ ^https:// ]]; then
+            echo "::error::VITE_API_URL wajib diawali https://."
+            exit 1
+          fi
+          if [[ "$CPANEL_TARGET_DIR" == "/" || "$CPANEL_TARGET_DIR" == *".."* ]] || [[ ! "$CPANEL_TARGET_DIR" =~ ^(~\/|\/)[A-Za-z0-9_./-]+$ ]]; then
+            echo "::error::CPANEL_TARGET_DIR tidak valid. Gunakan path lengkap seperti /home/username/public_html atau ~/public_html/sub."
+            exit 1
+          fi
+
+      - name: Instal dependensi & Build produksi PWA
+        working-directory: frontend
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_APP_DOMAIN: www.altasim.studio-pasti.net
+          VITE_DEBUG: 'false'
+        run: |
+          npm ci
+          npm run build
+
+      - name: Siapkan koneksi SSH
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          PORT="${SSH_PORT:-22}"
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          if [ -n "${SSH_KNOWN_HOSTS:-}" ]; then
+            printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "$PORT" -H "$SSH_HOST" > ~/.ssh/known_hosts
+          fi
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Deploy frontend/dist ke cPanel via SSH
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+          CPANEL_TARGET_DIR: ${{ secrets.CPANEL_TARGET_DIR }}
+        run: |
+          set -euo pipefail
+          PORT="${SSH_PORT:-22}"
+          SSH_CMD="ssh -i $HOME/.ssh/deploy_key -p $PORT -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
+          $SSH_CMD "${SSH_USERNAME}@${SSH_HOST}" "TARGET='$CPANEL_TARGET_DIR'; case \"\$TARGET\" in '~/'*) TARGET=\"\$HOME/\${TARGET#~/}\" ;; esac; mkdir -p \"\$TARGET\""
+
+          if $SSH_CMD "${SSH_USERNAME}@${SSH_HOST}" "command -v rsync >/dev/null 2>&1"; then
+            rsync -avz --delete \
+              --exclude='.well-known/' \
+              --exclude='cgi-bin/' \
+              --exclude='error_log' \
+              -e "$SSH_CMD" \
+              frontend/dist/ "${SSH_USERNAME}@${SSH_HOST}:${CPANEL_TARGET_DIR%/}/"
+          else
+            tar -C frontend/dist -czf - . | $SSH_CMD "${SSH_USERNAME}@${SSH_HOST}" \
+              "TARGET='$CPANEL_TARGET_DIR'; case \"\$TARGET\" in '~/'*) TARGET=\"\$HOME/\${TARGET#~/}\" ;; esac; find \"\$TARGET\" -mindepth 1 -maxdepth 1 ! -name '.well-known' ! -name 'cgi-bin' ! -name 'error_log' -exec rm -rf {} + && tar -xzf - -C \"\$TARGET\""
+          fi
+
+      - name: Bersihkan kunci SSH sementara
+        if: always()
+        run: rm -f ~/.ssh/deploy_key ~/.ssh/known_hosts

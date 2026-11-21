@@ -1,0 +1,28 @@
+# Dependencies & Build Artifacts
+node_modules/
+frontend/node_modules/
+frontend/dist/
+dist/
+*.local
+
+# Environment & Secrets (JANGAN PERNAH COMMIT RAHASIA)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+client_secret*.json
+
+# Google Apps Script CLI (clasp) local config & auth
+.clasp.json
+.clasprc.json
+backend-gas/.clasp.json
+
+# Logs & Editor / OS Junk
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
