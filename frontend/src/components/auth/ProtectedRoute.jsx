@@ -11,9 +11,9 @@ export function ProtectedRoute({ children }) {
 
   if (booting) {
     return (
-      <div className="min-h-dvh flex flex-col items-center justify-center gap-3 px-4 bg-slate-50 dark:bg-slate-950">
+      <div className="min-h-dvh flex flex-col items-center justify-center gap-3 px-4 app-canvas">
         <div className="w-10 h-10 rounded-full border-4 border-brand-200 border-t-brand-600 animate-spin" />
-        <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+        <p className="text-sm font-semibold text-muted">
           {t('auth.sessionRestoring')}
         </p>
       </div>

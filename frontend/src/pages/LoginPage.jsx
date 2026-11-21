@@ -51,15 +51,15 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-dvh flex flex-col justify-between px-4 py-4 sm:py-8 bg-gradient-to-b from-brand-50 via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
+    <div className="min-h-dvh flex flex-col justify-between px-4 py-4 sm:py-8 app-canvas text-ink">
       {/* Baris atas: Alih Bahasa ID/EN & Dark Mode */}
       <div className="w-full max-w-md mx-auto flex flex-wrap items-center justify-between gap-2">
         <div
           role="group"
           aria-label={t('settings.languageLabel')}
-          className="inline-flex items-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 shadow-sm"
+          className="inline-flex items-center rounded-full bg-surface border border-line p-1 shadow-card"
         >
-          <span className="px-2 text-slate-400 dark:text-slate-500" aria-hidden="true">
+          <span className="px-2.5 text-muted" aria-hidden="true">
             <Globe className="w-4 h-4" />
           </span>
           {['id', 'en'].map((code) => (
@@ -67,10 +67,10 @@ export function LoginPage() {
               key={code}
               type="button"
               onClick={() => setLang(code)}
-              className={`min-h-touch min-w-touch px-3 rounded-lg text-xs font-bold uppercase transition-colors ${
+              className={`min-h-touch min-w-touch px-3 rounded-full text-xs font-bold uppercase transition-colors ${
                 lang === code
                   ? 'bg-brand-700 text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  : 'text-muted hover:text-ink hover:bg-[var(--well)]'
               }`}
             >
               {code}
@@ -82,7 +82,7 @@ export function LoginPage() {
           type="button"
           onClick={toggleTheme}
           aria-label={isDark ? t('theme.switchToLight') : t('theme.switchToDark')}
-          className="min-h-touch min-w-touch flex items-center justify-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="min-h-touch min-w-touch flex items-center justify-center rounded-full bg-surface border border-line text-ink shadow-card hover:bg-[var(--well)] transition-colors"
         >
           {isDark ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5" />}
         </button>
@@ -90,34 +90,25 @@ export function LoginPage() {
 
       {/* Kartu Login */}
       <main className="w-full max-w-md mx-auto my-6">
-        <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl shadow-slate-200/70 dark:shadow-none border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8">
+        <div className="bg-surface rounded-card shadow-float border border-line p-6 sm:p-8">
           <div className="flex flex-col items-center text-center mb-6">
-            <div className="w-16 h-16 rounded-2xl bg-brand-700 text-white flex items-center justify-center shadow-lg shadow-brand-700/25 mb-3">
+            <div className="w-16 h-16 rounded-2xl bg-side text-[#c4ecd9] flex items-center justify-center shadow-sm border border-white/10 mb-3">
               <TreePine className="w-8 h-8" aria-hidden="true" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-              {t('app.name')}
-            </h1>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
-              {t('auth.loginTitle')}
-            </p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-              {t('auth.loginSubtitle')}
-            </p>
+            <h1 className="text-2xl font-bold tracking-tight text-ink">{t('app.name')}</h1>
+            <p className="text-sm font-medium text-muted mt-1">{t('auth.loginTitle')}</p>
+            <p className="text-xs text-faint mt-0.5">{t('auth.loginSubtitle')}</p>
           </div>
 
           {!isApiConfigured() && (
-            <div className="mb-5 p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs font-semibold text-amber-900 dark:text-amber-200">
+            <div className="mb-5 p-3.5 rounded-tile bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs font-semibold text-amber-900 dark:text-amber-200">
               {t('auth.apiNotConfigured')}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div>
-              <label
-                htmlFor="login-username"
-                className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-1.5"
-              >
+              <label htmlFor="login-username" className="block text-sm font-bold text-ink mb-1.5">
                 {t('auth.usernameLabel')}
               </label>
               <input
@@ -131,16 +122,13 @@ export function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder={t('auth.usernamePlaceholder')}
-                className="w-full min-h-touch px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white placeholder:text-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                className="w-full min-h-touch px-4 py-2.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                 required
               />
             </div>
 
             <div>
-              <label
-                htmlFor="login-password"
-                className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-1.5"
-              >
+              <label htmlFor="login-password" className="block text-sm font-bold text-ink mb-1.5">
                 {t('auth.passwordLabel')}
               </label>
               <div className="relative flex items-center">
@@ -152,14 +140,14 @@ export function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={t('auth.passwordPlaceholder')}
-                  className="w-full min-h-touch pl-4 pr-14 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white placeholder:text-slate-400 font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  className="w-full min-h-touch pl-4 pr-14 py-2.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
-                  className="absolute right-0 min-h-touch min-w-touch flex items-center justify-center text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 rounded-xl"
+                  className="absolute right-0 min-h-touch min-w-touch flex items-center justify-center text-muted hover:text-ink rounded-tile"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -175,17 +163,15 @@ export function LoginPage() {
                 type="checkbox"
                 checked={remember}
                 onChange={(e) => setRemember(e.target.checked)}
-                className="w-5 h-5 rounded border-slate-300 dark:border-slate-700 text-brand-700 focus:ring-brand-500"
+                className="w-5 h-5 rounded border-[var(--line-2)] text-brand-700 focus:ring-brand-500"
               />
-              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                {t('auth.rememberMe')}
-              </span>
+              <span className="text-sm font-semibold text-muted">{t('auth.rememberMe')}</span>
             </label>
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full min-h-touch px-5 py-3 rounded-xl bg-brand-700 hover:bg-brand-800 active:scale-[0.99] disabled:opacity-60 text-white font-bold text-base shadow-md shadow-brand-700/25 flex items-center justify-center gap-2 transition-all"
+              className="w-full min-h-touch px-5 py-3 rounded-full bg-brand-700 hover:bg-brand-800 active:scale-[0.99] disabled:opacity-60 text-white font-bold text-base shadow-sm flex items-center justify-center gap-2 transition-all"
             >
               <LogIn className="w-5 h-5" aria-hidden="true" />
               <span>{submitting ? t('auth.loggingIn') : t('auth.loginButton')}</span>
@@ -196,7 +182,7 @@ export function LoginPage() {
             <button
               type="button"
               onClick={promptInstall}
-              className="mt-4 w-full min-h-touch px-4 py-2.5 rounded-xl border border-brand-200 dark:border-brand-800 bg-brand-50 dark:bg-brand-950/40 text-brand-800 dark:text-brand-200 font-bold text-sm flex items-center justify-center gap-2 hover:bg-brand-100 dark:hover:bg-brand-900/50 transition-colors"
+              className="mt-4 w-full min-h-touch px-4 py-2.5 rounded-full border border-brand-200 dark:border-brand-800 bg-brand-50 dark:bg-brand-950/40 text-brand-800 dark:text-brand-200 font-bold text-sm flex items-center justify-center gap-2 hover:bg-brand-100 dark:hover:bg-brand-900/50 transition-colors"
             >
               <Download className="w-4 h-4 shrink-0" aria-hidden="true" />
               <span>{t('pwa.installBtn')}</span>
@@ -204,23 +190,17 @@ export function LoginPage() {
           )}
 
           {/* Info Hubungi Admin */}
-          <div className="mt-6 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 flex items-start gap-3">
-            <Info className="w-5 h-5 text-brand-700 dark:text-brand-400 shrink-0 mt-0.5" aria-hidden="true" />
+          <div className="mt-6 p-4 rounded-tile bg-surface-2 border border-line flex items-start gap-3">
+            <Info className="w-5 h-5 text-brand-700 dark:text-brand-300 shrink-0 mt-0.5" aria-hidden="true" />
             <div className="text-xs leading-relaxed">
-              <p className="font-bold text-slate-800 dark:text-slate-200">
-                {t('auth.contactAdminTitle')}
-              </p>
-              <p className="text-slate-600 dark:text-slate-400 mt-0.5">
-                {t('auth.contactAdminBody')}
-              </p>
+              <p className="font-bold text-ink">{t('auth.contactAdminTitle')}</p>
+              <p className="text-muted mt-0.5">{t('auth.contactAdminBody')}</p>
             </div>
           </div>
         </div>
       </main>
 
-      <footer className="text-center text-xs font-semibold text-slate-400 dark:text-slate-500">
-        {t('app.domain')}
-      </footer>
+      <footer className="text-center text-xs font-semibold text-faint">{t('app.domain')}</footer>
     </div>
   );
 }

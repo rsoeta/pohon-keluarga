@@ -18,6 +18,7 @@ import { db } from '../db/dexie.js';
 import { prefetchPhotos } from '../db/sync.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useI18n } from '../contexts/I18nContext.jsx';
+import { useQuickUi } from '../contexts/QuickUiContext.jsx';
 import { computeTreeLayout, pickDefaultFocusId } from '../lib/treeLayout.js';
 import { canEditAnggota, isAdmin } from '../lib/rbac.js';
 import { extractBirthYear, formatKodeUnik } from '../lib/format.js';
@@ -34,6 +35,7 @@ function clampScale(s) {
 export function TreePage() {
   const { user, isOnline, syncing, triggerSync } = useAuth();
   const { lang, t } = useI18n();
+  const { openMemberDrawer } = useQuickUi();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -230,18 +232,18 @@ export function TreePage() {
 
   if (!anggotaList.length || !layout.nodes.length) {
     return (
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-10 text-center shadow-sm space-y-4">
+      <div className="bg-surface rounded-card border border-line p-6 sm:p-10 text-center shadow-card space-y-4">
         <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 flex items-center justify-center">
           <GitFork className="w-8 h-8" />
         </div>
-        <h1 className="text-xl font-bold text-slate-900 dark:text-white">{t('tree.emptyTitle')}</h1>
-        <p className="text-sm font-medium text-slate-600 dark:text-slate-400 max-w-md mx-auto">
+        <h1 className="text-xl font-bold text-ink">{t('tree.emptyTitle')}</h1>
+        <p className="text-sm font-medium text-muted max-w-md mx-auto">
           {t('tree.emptyDesc')}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
           <Link
             to="/tambah"
-            className="min-h-touch px-5 py-2.5 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-bold text-sm inline-flex items-center gap-2"
+            className="min-h-touch px-5 py-2.5 rounded-full bg-brand-700 hover:bg-brand-800 text-white font-bold text-sm inline-flex items-center gap-2 shadow-sm"
           >
             <UserPlus className="w-4 h-4" />
             <span>{t('tree.addMember')}</span>
@@ -250,7 +252,7 @@ export function TreePage() {
             type="button"
             disabled={syncing || !isOnline}
             onClick={() => triggerSync({ forceFull: true })}
-            className="min-h-touch px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm inline-flex items-center gap-2 disabled:opacity-50"
+            className="min-h-touch px-5 py-2.5 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink font-bold text-sm inline-flex items-center gap-2 disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
             <span>{t('sync.syncNow')}</span>
@@ -267,14 +269,14 @@ export function TreePage() {
       {/* Bar Kontrol Atas — Fluid Flexbox tanpa horizontal scroll */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         {/* Sakelar Menurun / Mendatar */}
-        <div className="inline-flex rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 shadow-sm">
+        <div className="inline-flex rounded-full bg-surface border border-line p-1 shadow-card">
           <button
             type="button"
             onClick={() => setOrientation('vertical')}
-            className={`min-h-touch px-3 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors ${
+            className={`min-h-touch px-3.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-colors ${
               orientation === 'vertical'
                 ? 'bg-brand-700 text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                : 'text-muted hover:text-ink hover:bg-[var(--well)]'
             }`}
           >
             <Rows3 className="w-4 h-4" />
@@ -283,10 +285,10 @@ export function TreePage() {
           <button
             type="button"
             onClick={() => setOrientation('horizontal')}
-            className={`min-h-touch px-3 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors ${
+            className={`min-h-touch px-3.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-colors ${
               orientation === 'horizontal'
                 ? 'bg-brand-700 text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                : 'text-muted hover:text-ink hover:bg-[var(--well)]'
             }`}
           >
             <Columns3 className="w-4 h-4" />
@@ -296,16 +298,16 @@ export function TreePage() {
 
         {/* Kedalaman Generasi & Navigasi Fokus */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <div className="inline-flex rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1 shadow-sm">
+          <div className="inline-flex rounded-full bg-surface border border-line p-1 shadow-card">
             {[3, 4].map((gen) => (
               <button
                 key={gen}
                 type="button"
                 onClick={() => setMaxGenerations(gen)}
-                className={`min-h-touch px-3 rounded-lg text-xs font-bold transition-colors ${
+                className={`min-h-touch px-3 rounded-full text-xs font-bold transition-colors ${
                   maxGenerations === gen
-                    ? 'bg-heritage-500 text-white shadow-sm'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ? 'bg-heritage-600 text-white shadow-sm'
+                    : 'text-muted hover:text-ink hover:bg-[var(--well)]'
                 }`}
               >
                 {gen}G
@@ -319,9 +321,9 @@ export function TreePage() {
               onClick={() =>
                 setFocus(layout.parentsOfFocus.ayah?.id_anggota || layout.parentsOfFocus.ibu?.id_anggota)
               }
-              className="min-h-touch px-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 shadow-sm flex items-center gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="min-h-touch px-3.5 rounded-full bg-surface border border-line text-xs font-bold text-ink shadow-card flex items-center gap-1.5 hover:bg-[var(--well)]"
             >
-              <ArrowUp className="w-4 h-4 text-brand-600 dark:text-brand-400" />
+              <ArrowUp className="w-4 h-4 text-brand-700 dark:text-brand-300" />
               <span>{t('tree.upToParent')}</span>
             </button>
           )}
@@ -330,7 +332,7 @@ export function TreePage() {
             <button
               type="button"
               onClick={() => setFocus(user.id_anggota)}
-              className="min-h-touch px-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-brand-700 dark:text-brand-300 shadow-sm flex items-center gap-1.5 hover:bg-brand-50 dark:hover:bg-slate-800"
+              className="min-h-touch px-3.5 rounded-full bg-surface border border-line text-xs font-bold text-brand-700 dark:text-brand-300 shadow-card flex items-center gap-1.5 hover:bg-brand-50 dark:hover:bg-brand-950/60"
             >
               <Compass className="w-4 h-4" />
               <span>{t('tree.myProfile')}</span>
@@ -347,10 +349,10 @@ export function TreePage() {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         onWheel={handleWheel}
-        className="relative w-full h-[calc(100dvh-14.5rem)] min-h-[24rem] rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-inner overflow-hidden touch-none select-none cursor-grab active:cursor-grabbing"
+        className="relative w-full h-[calc(100dvh-15.5rem)] min-h-[24rem] rounded-card border border-line bg-surface shadow-card overflow-hidden touch-none select-none cursor-grab active:cursor-grabbing"
         style={{
           backgroundImage:
-            'radial-gradient(circle, rgba(148,163,184,0.22) 1px, transparent 1px)',
+            'radial-gradient(circle, rgba(13,92,85,0.16) 1px, transparent 1px)',
           backgroundSize: '22px 22px'
         }}
       >
@@ -375,7 +377,7 @@ export function TreePage() {
                 key={edge.id}
                 d={edge.path}
                 fill="none"
-                stroke={edge.isAngkat ? '#d97706' : '#94a3b8'}
+                stroke={edge.isAngkat ? '#d97706' : '#7b8f89'}
                 strokeWidth={2}
                 strokeDasharray={edge.isAngkat ? '6 4' : undefined}
                 strokeLinecap="round"
@@ -393,7 +395,7 @@ export function TreePage() {
                     ? '#e11d48'
                     : mEdge.status === 'Wafat'
                     ? '#64748b'
-                    : '#0f766e'
+                    : '#0d5c55'
                 }
                 strokeWidth={2.4}
                 strokeDasharray={mEdge.status === 'Cerai' ? '5 4' : undefined}
@@ -423,19 +425,22 @@ export function TreePage() {
                   height: node.height
                 }}
                 onClick={() => {
-                  if (!dragMovedRef.current) navigate(`/profil/${p.id_anggota}`);
+                  if (!dragMovedRef.current) openMemberDrawer(p.id_anggota);
                 }}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') navigate(`/profil/${p.id_anggota}`);
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openMemberDrawer(p.id_anggota);
+                  }
                 }}
-                className={`absolute rounded-2xl border border-l-4 ${borderAccent} p-2.5 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow cursor-pointer ${
+                className={`absolute rounded-tile border border-l-4 ${borderAccent} p-2.5 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                   node.isFocus
-                    ? 'bg-brand-50/95 dark:bg-brand-950/60 border-brand-500 ring-2 ring-brand-500/30'
+                    ? 'bg-brand-50 dark:bg-brand-950/70 border-brand-500 ring-2 ring-brand-500/35'
                     : !p.status_hidup
-                    ? 'bg-slate-100/95 dark:bg-slate-800/80 border-slate-300 dark:border-slate-700'
-                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700'
+                    ? 'bg-surface-2 border-line opacity-95'
+                    : 'bg-raised border-line'
                 }`}
               >
                 <div className="flex items-center gap-2 min-w-0">
@@ -447,10 +452,10 @@ export function TreePage() {
                     size="sm"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate leading-snug">
+                    <p className="text-xs font-bold text-ink truncate leading-snug">
                       {p.nama_lengkap}
                     </p>
-                    <p className="text-[0.65rem] font-semibold text-slate-500 dark:text-slate-400 truncate">
+                    <p className="text-[0.65rem] font-semibold text-muted truncate">
                       {formatKodeUnik(p.kode_unik)}
                       {birthYear ? ` · ${birthYear}` : ''}
                     </p>
@@ -460,7 +465,7 @@ export function TreePage() {
                 <div className="flex items-center justify-between gap-1 pt-1">
                   <div className="flex items-center gap-1 min-w-0 overflow-hidden">
                     {!p.status_hidup && (
-                      <span className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[0.6rem] font-bold truncate">
+                      <span className="px-1.5 py-0.5 rounded bg-surface border border-line text-muted text-[0.6rem] font-bold truncate">
                         {lang === 'en' ? 'Dec.' : 'Alm.'}
                       </span>
                     )}
@@ -493,7 +498,7 @@ export function TreePage() {
                           setFocus(p.id_anggota);
                         }}
                         title={t('tree.focusHere')}
-                        className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-brand-100 dark:hover:bg-brand-900/50 text-slate-700 dark:text-slate-200 text-[0.65rem] font-bold"
+                        className="px-2 py-1 rounded-full bg-surface-2 hover:bg-brand-100 dark:hover:bg-brand-900/50 border border-line text-ink text-[0.65rem] font-bold"
                       >
                         <LocateFixed className="w-3.5 h-3.5" />
                       </button>
@@ -506,7 +511,7 @@ export function TreePage() {
                           handleQuickAdd(p);
                         }}
                         title={t('tree.addMember')}
-                        className="px-2 py-1 rounded-lg bg-brand-700 hover:bg-brand-800 text-white text-[0.65rem] font-bold"
+                        className="px-2 py-1 rounded-full bg-brand-700 hover:bg-brand-800 text-white text-[0.65rem] font-bold"
                       >
                         +
                       </button>
@@ -519,10 +524,10 @@ export function TreePage() {
         </div>
 
         {/* Info Ringkas & Legenda (Kiri Bawah) */}
-        <div className="absolute bottom-3 left-3 z-20 pointer-events-none hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 text-[0.7rem] font-semibold text-slate-600 dark:text-slate-300 shadow-sm">
+        <div className="absolute bottom-3 left-3 z-20 pointer-events-none hidden sm:flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-surface/90 backdrop-blur-md border border-line text-[0.7rem] font-semibold text-muted shadow-sm">
           <span>{t('tree.nodesShown', { n: layout.totalNodes })}</span>
           <span className="inline-flex items-center gap-1">
-            <span className="w-4 h-0.5 bg-slate-400 inline-block" />
+            <span className="w-4 h-0.5 bg-[#7b8f89] inline-block" />
             {t('tree.legendBiological')}
           </span>
           <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-300">
@@ -538,18 +543,18 @@ export function TreePage() {
             onClick={handleExportPdf}
             disabled={exporting}
             aria-label={t('tree.exportPdf')}
-            className="min-h-touch px-3.5 rounded-2xl bg-brand-700 hover:bg-brand-800 active:scale-95 text-white shadow-lg shadow-brand-700/25 flex items-center gap-2 text-xs font-bold transition-all"
+            className="min-h-touch px-4 rounded-full bg-brand-700 hover:bg-brand-800 active:scale-95 text-white shadow-float flex items-center gap-2 text-xs font-bold transition-all"
           >
             <FileDown className="w-4 h-4 shrink-0" />
             <span>{t('tree.exportPdf')}</span>
           </button>
 
-          <div className="inline-flex items-center rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 shadow-lg p-1">
+          <div className="inline-flex items-center rounded-full bg-surface/95 backdrop-blur-md border border-line shadow-card p-1">
             <button
               type="button"
               onClick={() => zoomBy(-0.15)}
               aria-label={t('tree.zoomOut')}
-              className="min-h-touch min-w-touch flex items-center justify-center rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-ink hover:bg-[var(--well)]"
             >
               <Minus className="w-4 h-4" />
             </button>
@@ -558,7 +563,7 @@ export function TreePage() {
               type="button"
               onClick={fitView}
               title={t('tree.resetView')}
-              className="min-h-touch px-2.5 text-xs font-bold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl tabular-nums"
+              className="min-h-touch px-2.5 text-xs font-bold text-ink hover:bg-[var(--well)] rounded-full tabular-nums"
             >
               {Math.round(scale * 100)}%
             </button>
@@ -567,7 +572,7 @@ export function TreePage() {
               type="button"
               onClick={() => zoomBy(0.15)}
               aria-label={t('tree.zoomIn')}
-              className="min-h-touch min-w-touch flex items-center justify-center rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-ink hover:bg-[var(--well)]"
             >
               <Plus className="w-4 h-4" />
             </button>

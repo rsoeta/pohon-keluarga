@@ -342,7 +342,7 @@ export function AdminPanelPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink flex items-center gap-2">
           <Shield className="w-5 h-5 text-heritage-600 dark:text-heritage-400" />
           <span>{t('admin.title')}</span>
         </h1>
@@ -352,7 +352,7 @@ export function AdminPanelPage() {
           onClick={() => loadTabData(tab)}
           disabled={loading || !isOnline}
           aria-label={t('sync.syncNow')}
-          className="min-h-touch min-w-touch flex items-center justify-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 disabled:opacity-50"
+          className="min-h-touch min-w-touch flex items-center justify-center rounded-full bg-surface border border-line text-ink hover:bg-surface-2 disabled:opacity-50 shadow-card"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
         </button>
@@ -370,10 +370,10 @@ export function AdminPanelPage() {
             key={key}
             type="button"
             onClick={() => setTab(key)}
-            className={`flex-1 min-w-[6.5rem] min-h-touch px-3 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-colors ${
+            className={`flex-1 min-w-[6.5rem] min-h-touch px-3.5 rounded-full text-xs font-bold border flex items-center justify-center gap-1.5 transition-colors ${
               tab === key
                 ? 'bg-brand-700 text-white border-brand-700 shadow-sm'
-                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-800'
+                : 'bg-surface text-ink border-line hover:bg-surface-2'
             }`}
           >
             <Icon className="w-4 h-4 shrink-0" />
@@ -401,23 +401,23 @@ export function AdminPanelPage() {
               ].map(([title, val, sub]) => (
                 <div
                   key={title}
-                  className="w-full sm:w-[calc(50%-0.375rem)] bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm"
+                  className="w-full sm:w-[calc(50%-0.375rem)] bg-surface rounded-card border border-line p-4 shadow-card"
                 >
-                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{title}</p>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{val}</p>
-                  {sub && <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1">{sub}</p>}
+                  <p className="text-xs font-bold text-faint">{title}</p>
+                  <p className="text-2xl font-bold text-ink mt-1">{val}</p>
+                  {sub && <p className="text-xs font-semibold text-muted mt-1">{sub}</p>}
                 </div>
               ))}
             </div>
           ) : (
-            <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm font-medium text-slate-500">
+            <div className="p-6 rounded-card bg-surface border border-line text-sm font-medium text-muted shadow-card">
               {t('common.loading')}
             </div>
           )}
 
           <Link
             to="/admin/gedcom"
-            className="w-full min-h-touch px-4 py-3 rounded-2xl bg-heritage-600 hover:bg-heritage-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm"
+            className="w-full min-h-touch px-4 py-3 rounded-full bg-heritage-600 hover:bg-heritage-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm"
           >
             <FileUp className="w-4 h-4" />
             <span>{t('admin.quickGedcom')}</span>
@@ -430,40 +430,40 @@ export function AdminPanelPage() {
         <div className="space-y-4">
           <form
             onSubmit={handleCreateUser}
-            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm space-y-3"
+            className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3"
           >
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <UserPlus className="w-4 h-4 text-brand-700 dark:text-brand-400" />
+            <h2 className="text-sm font-bold text-ink flex items-center gap-2">
+              <UserPlus className="w-4 h-4 text-brand-700 dark:text-brand-300" />
               <span>{t('admin.createUserTitle')}</span>
             </h2>
 
             <div className="flex flex-wrap gap-3">
               <div className="flex-1 min-w-[11rem]">
-                <label className="block text-xs font-bold mb-1">{t('admin.usernameLabel')}</label>
+                <label className="block text-xs font-bold text-muted mb-1">{t('admin.usernameLabel')}</label>
                 <input
                   type="text"
                   value={newUsername}
                   onChange={(e) => setNewUsername(e.target.value)}
                   placeholder="budi.santoso"
-                  className="w-full min-h-touch px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+                  className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
                 />
               </div>
 
               <div className="flex-1 min-w-[12rem]">
-                <label className="block text-xs font-bold mb-1">{t('admin.passwordLabel')}</label>
+                <label className="block text-xs font-bold text-muted mb-1">{t('admin.passwordLabel')}</label>
                 <div className="flex gap-1.5">
                   <input
                     type="text"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder={t('auth.passwordPolicyHint')}
-                    className="flex-1 min-w-0 min-h-touch px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+                    className="flex-1 min-w-0 min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
                   />
                   <button
                     type="button"
                     onClick={() => setNewPassword(generateSecureTempPassword(12))}
                     title={t('admin.generatePassword')}
-                    className="min-h-touch px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold inline-flex items-center gap-1 shrink-0"
+                    className="min-h-touch px-3 rounded-full bg-surface-2 border border-line text-ink hover:bg-[var(--well)] text-xs font-bold inline-flex items-center gap-1 shrink-0"
                   >
                     <Sparkles className="w-4 h-4 text-heritage-600" />
                     <span className="hidden sm:inline">{t('admin.generatePassword')}</span>
@@ -473,7 +473,7 @@ export function AdminPanelPage() {
                     onClick={handleCopyCredentials}
                     title={t('admin.copyCredentials')}
                     aria-label={t('admin.copyCredentials')}
-                    className="min-h-touch min-w-touch flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 shrink-0"
+                    className="min-h-touch min-w-touch flex items-center justify-center rounded-full bg-surface-2 border border-line text-ink hover:bg-[var(--well)] shrink-0"
                   >
                     <Copy className="w-4 h-4" />
                   </button>
@@ -483,11 +483,11 @@ export function AdminPanelPage() {
 
             <div className="flex flex-wrap gap-3">
               <div className="w-36">
-                <label className="block text-xs font-bold mb-1">{t('admin.roleLabel')}</label>
+                <label className="block text-xs font-bold text-muted mb-1">{t('admin.roleLabel')}</label>
                 <select
                   value={newRole}
                   onChange={(e) => setNewRole(e.target.value)}
-                  className="w-full min-h-touch px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+                  className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
                 >
                   <option value="User">User</option>
                   <option value="Admin">Admin</option>
@@ -495,11 +495,11 @@ export function AdminPanelPage() {
               </div>
 
               <div className="flex-1 min-w-[12rem]">
-                <label className="block text-xs font-bold mb-1">{t('admin.linkMemberLabel')}</label>
+                <label className="block text-xs font-bold text-muted mb-1">{t('admin.linkMemberLabel')}</label>
                 <select
                   value={newAnggotaId}
                   onChange={(e) => setNewAnggotaId(e.target.value)}
-                  className="w-full min-h-touch px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+                  className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
                 >
                   <option value="">{t('admin.noLinkOption')}</option>
                   {activeMembers.map((a) => (
@@ -514,7 +514,7 @@ export function AdminPanelPage() {
             <button
               type="submit"
               disabled={creatingUser || !isOnline}
-              className="w-full sm:w-auto min-h-touch px-5 rounded-xl bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white text-sm font-bold"
+              className="w-full sm:w-auto min-h-touch px-5 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white text-sm font-bold shadow-sm"
             >
               {creatingUser ? t('common.saving') : t('admin.createUserBtn')}
             </button>
@@ -522,7 +522,7 @@ export function AdminPanelPage() {
 
           {/* Daftar Pengguna (Kartu Flexbox Tanpa Horizontal Scroll) */}
           <div className="space-y-3">
-            <h2 className="text-sm font-bold text-slate-600 dark:text-slate-300">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-faint">
               {t('admin.usersListTitle', { n: users.length })}
             </h2>
 
@@ -538,10 +538,10 @@ export function AdminPanelPage() {
               return (
                 <article
                   key={u.id_user}
-                  className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm space-y-3"
+                  className="bg-surface rounded-card border border-line p-4 shadow-card space-y-3"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-base font-bold text-slate-900 dark:text-white">@{u.username}</p>
+                    <p className="text-base font-bold text-ink">@{u.username}</p>
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
                         u.status_aktif
@@ -557,7 +557,7 @@ export function AdminPanelPage() {
                     <select
                       value={d.role}
                       onChange={(e) => setDraft({ role: e.target.value })}
-                      className="min-h-touch px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-xs font-bold"
+                      className="min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-xs font-bold"
                     >
                       <option value="User">User</option>
                       <option value="Admin">Admin</option>
@@ -566,7 +566,7 @@ export function AdminPanelPage() {
                     <select
                       value={d.status_aktif ? '1' : '0'}
                       onChange={(e) => setDraft({ status_aktif: e.target.value === '1' })}
-                      className="min-h-touch px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-xs font-bold"
+                      className="min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-xs font-bold"
                     >
                       <option value="1">{t('admin.statusActive')}</option>
                       <option value="0">{t('admin.statusInactive')}</option>
@@ -575,7 +575,7 @@ export function AdminPanelPage() {
                     <select
                       value={d.id_anggota}
                       onChange={(e) => setDraft({ id_anggota: e.target.value })}
-                      className="flex-1 min-w-[11rem] min-h-touch px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-xs font-bold"
+                      className="flex-1 min-w-[11rem] min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-xs font-bold"
                     >
                       <option value="">{t('admin.noLinkOption')}</option>
                       {activeMembers.map((a) => (
@@ -590,7 +590,7 @@ export function AdminPanelPage() {
                     <button
                       type="button"
                       onClick={() => handleUpdateUser(u.id_user)}
-                      className="flex-1 min-w-[8rem] min-h-touch px-3 rounded-xl bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold inline-flex items-center justify-center gap-1.5"
+                      className="flex-1 min-w-[8rem] min-h-touch px-3.5 rounded-full bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-sm"
                     >
                       <Save className="w-3.5 h-3.5" />
                       <span>{t('admin.saveUserBtn')}</span>
@@ -599,7 +599,7 @@ export function AdminPanelPage() {
                     <button
                       type="button"
                       onClick={() => handleResetPassword(u)}
-                      className="flex-1 min-w-[8rem] min-h-touch px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-xs font-bold inline-flex items-center justify-center gap-1.5"
+                      className="flex-1 min-w-[8rem] min-h-touch px-3.5 rounded-full bg-surface-2 border border-line hover:bg-[var(--well)] text-ink text-xs font-bold inline-flex items-center justify-center gap-1.5"
                     >
                       <KeyRound className="w-3.5 h-3.5" />
                       <span>{t('admin.resetPasswordBtn')}</span>
@@ -608,7 +608,7 @@ export function AdminPanelPage() {
                     <button
                       type="button"
                       onClick={() => handleRevokeSessions(u)}
-                      className="min-h-touch px-3 rounded-xl border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-bold"
+                      className="min-h-touch px-3.5 rounded-full border border-rose-300/80 dark:border-rose-900 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-bold"
                     >
                       {t('admin.revokeSessionsBtn')}
                     </button>
@@ -625,28 +625,26 @@ export function AdminPanelPage() {
         <div className="space-y-4">
           <form
             onSubmit={handleSaveSettings}
-            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm space-y-3"
+            className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3"
           >
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-              {t('admin.settingsTitle')}
-            </h2>
+            <h2 className="text-sm font-bold text-ink">{t('admin.settingsTitle')}</h2>
 
             <div>
-              <label className="block text-xs font-bold mb-1">{t('admin.familyNameLabel')}</label>
+              <label className="block text-xs font-bold text-muted mb-1">{t('admin.familyNameLabel')}</label>
               <input
                 type="text"
                 value={settingsForm.nama_keluarga}
                 onChange={(e) => setSettingsForm((s) => ({ ...s, nama_keluarga: e.target.value }))}
-                className="w-full min-h-touch px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+                className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold mb-1">{t('admin.mainAncestorLabel')}</label>
+              <label className="block text-xs font-bold text-muted mb-1">{t('admin.mainAncestorLabel')}</label>
               <select
                 value={settingsForm.id_leluhur_utama}
                 onChange={(e) => setSettingsForm((s) => ({ ...s, id_leluhur_utama: e.target.value }))}
-                className="w-full min-h-touch px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+                className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
               >
                 <option value="">{t('admin.noLinkOption')}</option>
                 {activeMembers.map((a) => (
@@ -666,16 +664,16 @@ export function AdminPanelPage() {
                 }
                 className="w-5 h-5 rounded text-brand-700"
               />
-              <span className="text-sm font-bold">{t('admin.waActiveLabel')}</span>
+              <span className="text-sm font-bold text-ink">{t('admin.waActiveLabel')}</span>
             </label>
 
             <div className="flex flex-wrap gap-3">
               <div className="w-40">
-                <label className="block text-xs font-bold mb-1">{t('admin.waProviderLabel')}</label>
+                <label className="block text-xs font-bold text-muted mb-1">{t('admin.waProviderLabel')}</label>
                 <select
                   value={settingsForm.wa_provider}
                   onChange={(e) => setSettingsForm((s) => ({ ...s, wa_provider: e.target.value }))}
-                  className="w-full min-h-touch px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+                  className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
                 >
                   <option value="fonnte">Fonnte</option>
                   <option value="wablas">Wablas</option>
@@ -684,58 +682,56 @@ export function AdminPanelPage() {
               </div>
 
               <div className="w-36">
-                <label className="block text-xs font-bold mb-1">{t('admin.waHourLabel')}</label>
+                <label className="block text-xs font-bold text-muted mb-1">{t('admin.waHourLabel')}</label>
                 <input
                   type="number"
                   min="0"
                   max="23"
                   value={settingsForm.wa_jam_trigger}
                   onChange={(e) => setSettingsForm((s) => ({ ...s, wa_jam_trigger: e.target.value }))}
-                  className="w-full min-h-touch px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+                  className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold mb-1">{t('admin.waUrlLabel')}</label>
+              <label className="block text-xs font-bold text-muted mb-1">{t('admin.waUrlLabel')}</label>
               <input
                 type="url"
                 value={settingsForm.wa_gateway_url}
                 onChange={(e) => setSettingsForm((s) => ({ ...s, wa_gateway_url: e.target.value }))}
                 placeholder="https://api.fonnte.com/send"
-                className="w-full min-h-touch px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+                className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold mb-1">{t('admin.waGroupLabel')}</label>
+              <label className="block text-xs font-bold text-muted mb-1">{t('admin.waGroupLabel')}</label>
               <input
                 type="text"
                 value={settingsForm.wa_group_id}
                 onChange={(e) => setSettingsForm((s) => ({ ...s, wa_group_id: e.target.value }))}
                 placeholder="120363000000@g.us"
-                className="w-full min-h-touch px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+                className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold mb-1">{t('admin.waTemplateLabel')}</label>
+              <label className="block text-xs font-bold text-muted mb-1">{t('admin.waTemplateLabel')}</label>
               <textarea
                 rows={4}
                 value={settingsForm.wa_template}
                 onChange={(e) => setSettingsForm((s) => ({ ...s, wa_template: e.target.value }))}
-                className="w-full p-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-medium"
+                className="w-full p-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-medium"
               />
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {t('admin.waTemplateHint')}
-              </p>
+              <p className="text-xs text-muted mt-1">{t('admin.waTemplateHint')}</p>
             </div>
 
             <div className="flex flex-wrap gap-2">
               <button
                 type="submit"
                 disabled={savingSettings || !isOnline}
-                className="flex-1 min-w-[10rem] min-h-touch px-4 rounded-xl bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white text-sm font-bold"
+                className="flex-1 min-w-[10rem] min-h-touch px-4 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white text-sm font-bold shadow-sm"
               >
                 {savingSettings ? t('common.saving') : t('admin.saveSettingsBtn')}
               </button>
@@ -744,7 +740,7 @@ export function AdminPanelPage() {
                 type="button"
                 onClick={handleWaTest}
                 disabled={!isOnline}
-                className="min-h-touch px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-bold inline-flex items-center gap-2"
+                className="min-h-touch px-4 rounded-full bg-wa hover:bg-wa-hover disabled:opacity-50 text-white text-sm font-bold inline-flex items-center gap-2 shadow-sm transition-colors"
               >
                 <Send className="w-4 h-4" />
                 <span>{t('admin.waTestBtn')}</span>
@@ -753,11 +749,9 @@ export function AdminPanelPage() {
           </form>
 
           {/* Token Rahasia di PropertiesService */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm space-y-3">
+          <div className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-                {t('admin.waTokenTitle')}
-              </h2>
+              <h2 className="text-sm font-bold text-ink">{t('admin.waTokenTitle')}</h2>
               <span
                 className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
                   settingsForm.wa_token_configured
@@ -769,14 +763,14 @@ export function AdminPanelPage() {
               </span>
             </div>
 
-            <p className="text-xs text-slate-500 dark:text-slate-400">{t('admin.waTokenHint')}</p>
+            <p className="text-xs text-muted">{t('admin.waTokenHint')}</p>
 
             <input
               type="password"
               value={waTokenInput}
               onChange={(e) => setWaTokenInput(e.target.value)}
               placeholder={t('admin.waTokenPlaceholder')}
-              className="w-full min-h-touch px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+              className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
             />
 
             <div className="flex flex-wrap gap-2">
@@ -784,7 +778,7 @@ export function AdminPanelPage() {
                 type="button"
                 onClick={handleSaveWaToken}
                 disabled={!isOnline}
-                className="flex-1 min-w-[9rem] min-h-touch px-4 rounded-xl bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 text-xs font-bold"
+                className="flex-1 min-w-[9rem] min-h-touch px-4 rounded-full bg-side text-[var(--on-side)] hover:opacity-95 text-xs font-bold"
               >
                 {t('admin.saveTokenBtn')}
               </button>
@@ -794,7 +788,7 @@ export function AdminPanelPage() {
                   type="button"
                   onClick={handleClearWaToken}
                   disabled={!isOnline}
-                  className="min-h-touch px-4 rounded-xl border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-bold"
+                  className="min-h-touch px-4 rounded-full border border-rose-300/80 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-bold"
                 >
                   {t('admin.clearTokenBtn')}
                 </button>
@@ -808,31 +802,29 @@ export function AdminPanelPage() {
       {tab === 'deleted' && (
         <div className="space-y-4">
           {!deletedData.anggota.length && !deletedData.pernikahan.length ? (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center text-sm font-medium text-slate-500 shadow-sm">
+            <div className="bg-surface rounded-card border border-line p-6 text-center text-sm font-medium text-muted shadow-card">
               {t('admin.noDeletedData')}
             </div>
           ) : (
             <>
               {deletedData.anggota.length > 0 && (
                 <section className="space-y-2">
-                  <h2 className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-faint">
                     {t('admin.deletedMembersTitle', { n: deletedData.anggota.length })}
                   </h2>
                   {deletedData.anggota.map((a) => (
                     <div
                       key={a.id_anggota}
-                      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 flex flex-wrap items-center justify-between gap-2 shadow-sm"
+                      className="bg-surface rounded-card border border-line p-3.5 flex flex-wrap items-center justify-between gap-2 shadow-card"
                     >
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-slate-900 dark:text-white break-words">
-                          {a.nama_lengkap}
-                        </p>
-                        <p className="text-xs text-slate-500">#{a.kode_unik}</p>
+                        <p className="text-sm font-bold text-ink break-words">{a.nama_lengkap}</p>
+                        <p className="text-xs text-muted font-mono">#{a.kode_unik}</p>
                       </div>
                       <button
                         type="button"
                         onClick={() => handleRestore('anggota', a.id_anggota)}
-                        className="min-h-touch px-3.5 rounded-xl bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold inline-flex items-center gap-1.5"
+                        className="min-h-touch px-4 rounded-full bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold inline-flex items-center gap-1.5"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
                         <span>{t('admin.restoreBtn')}</span>
@@ -844,22 +836,22 @@ export function AdminPanelPage() {
 
               {deletedData.pernikahan.length > 0 && (
                 <section className="space-y-2">
-                  <h2 className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-faint">
                     {t('admin.deletedMarriagesTitle', { n: deletedData.pernikahan.length })}
                   </h2>
                   {deletedData.pernikahan.map((m) => (
                     <div
                       key={m.id_pernikahan}
-                      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 flex flex-wrap items-center justify-between gap-2 shadow-sm"
+                      className="bg-surface rounded-card border border-line p-3.5 flex flex-wrap items-center justify-between gap-2 shadow-card"
                     >
-                      <p className="text-sm font-bold text-slate-900 dark:text-white">
+                      <p className="text-sm font-bold text-ink">
                         {(memberNameMap.get(m.id_suami) || m.id_suami)} &amp;{' '}
                         {(memberNameMap.get(m.id_istri) || m.id_istri)} ({m.status_pernikahan})
                       </p>
                       <button
                         type="button"
                         onClick={() => handleRestore('pernikahan', m.id_pernikahan)}
-                        className="min-h-touch px-3.5 rounded-xl bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold inline-flex items-center gap-1.5"
+                        className="min-h-touch px-4 rounded-full bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold inline-flex items-center gap-1.5"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
                         <span>{t('admin.restoreBtn')}</span>

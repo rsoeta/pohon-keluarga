@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Moon, RefreshCw, Sun, TreePine } from 'lucide-react';
+import { Moon, RefreshCw, Search, Sun, TreePine } from 'lucide-react';
 import { db } from '../../db/dexie.js';
 import { getCachedPhoto } from '../../db/sync.js';
 import { useAuth } from '../../contexts/AuthContext.jsx';
 import { useTheme } from '../../contexts/ThemeContext.jsx';
 import { useI18n } from '../../contexts/I18nContext.jsx';
+import { useQuickUi } from '../../contexts/QuickUiContext.jsx';
 import { toastSuccess } from '../../lib/swal.js';
 
 function getInitials(name) {
@@ -20,6 +21,7 @@ export function TopHeader() {
   const { user, syncing, isOnline, triggerSync } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const { t } = useI18n();
+  const { openCommandPalette } = useQuickUi();
 
   const metaPengaturan = useLiveQuery(() => db.meta.get('pengaturan'), []);
   const myAnggota = useLiveQuery(
@@ -55,20 +57,21 @@ export function TopHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md">
-      <div className="w-full max-w-5xl mx-auto px-3 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-2">
+    <header className="sticky top-0 z-30 w-full border-b border-line bg-surface/85 backdrop-blur-md">
+      <div className="w-full max-w-5xl mx-auto px-3 sm:px-6 py-2 flex items-center justify-between gap-2 sm:gap-3">
+        {/* Kiri: Brand Organic Pine */}
         <Link
           to="/pohon"
-          className="min-h-touch flex items-center gap-2.5 pr-2 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 min-w-0"
+          className="min-h-touch flex items-center gap-2.5 pr-1 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 min-w-0 shrink-0"
         >
-          <span className="w-10 h-10 shrink-0 rounded-xl bg-brand-700 text-white flex items-center justify-center shadow-sm">
+          <span className="w-10 h-10 shrink-0 rounded-2xl bg-side text-[#c4ecd9] flex items-center justify-center shadow-sm border border-white/10">
             <TreePine className="w-5 h-5" aria-hidden="true" />
           </span>
           <div className="min-w-0">
-            <p className="text-base font-bold text-slate-900 dark:text-white leading-tight truncate max-w-[11rem] sm:max-w-xs">
+            <p className="text-sm sm:text-base font-bold text-ink leading-tight truncate max-w-[9.5rem] sm:max-w-[13rem]">
               {familyName}
             </p>
-            <div className="flex items-center gap-1.5 text-[0.7rem] font-semibold text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-1.5 text-[0.7rem] font-semibold text-muted">
               <span
                 className={`inline-block w-2 h-2 rounded-full ${
                   isOnline ? 'bg-emerald-500' : 'bg-amber-500'
@@ -79,16 +82,45 @@ export function TopHeader() {
           </div>
         </Link>
 
+        {/* Tengah (Desktop): Pill Command Palette ⌘K ala Tend */}
+        <button
+          type="button"
+          onClick={openCommandPalette}
+          aria-label={t('command.dialogLabel')}
+          className="hidden md:flex flex-1 max-w-md min-h-touch items-center justify-between gap-2 px-4 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+        >
+          <span className="flex items-center gap-2 min-w-0">
+            <Search className="w-4 h-4 text-faint shrink-0" aria-hidden="true" />
+            <span className="text-xs font-semibold truncate">{t('command.triggerPlaceholder')}</span>
+          </span>
+          <kbd className="px-2 py-0.5 rounded-full bg-surface border border-line text-[0.65rem] font-mono font-bold text-faint shrink-0">
+            ⌘K
+          </kbd>
+        </button>
+
+        {/* Kanan: Kontrol Cepat */}
         <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={openCommandPalette}
+            aria-label={t('command.triggerShort')}
+            title={`${t('command.triggerShort')} (⌘K)`}
+            className="md:hidden min-h-touch min-w-touch flex items-center justify-center rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink transition-colors"
+          >
+            <Search className="w-4 h-4" />
+          </button>
+
           <button
             type="button"
             onClick={handleSync}
             disabled={syncing || !isOnline}
             aria-label={t('sync.syncNow')}
             title={t('sync.syncNow')}
-            className="min-h-touch min-w-touch flex items-center justify-center rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 transition-colors"
+            className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-[var(--well)] disabled:opacity-50 transition-colors"
           >
-            <RefreshCw className={`w-5 h-5 ${syncing ? 'animate-spin text-brand-600 dark:text-brand-400' : ''}`} />
+            <RefreshCw
+              className={`w-5 h-5 ${syncing ? 'animate-spin text-brand-700 dark:text-brand-300' : ''}`}
+            />
           </button>
 
           <button
@@ -96,7 +128,7 @@ export function TopHeader() {
             onClick={toggleTheme}
             aria-label={isDark ? t('theme.switchToLight') : t('theme.switchToDark')}
             title={isDark ? t('theme.switchToLight') : t('theme.switchToDark')}
-            className="min-h-touch min-w-touch flex items-center justify-center rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-[var(--well)] transition-colors"
           >
             {isDark ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5" />}
           </button>
@@ -105,7 +137,7 @@ export function TopHeader() {
             to="/setelan"
             aria-label={t('nav.settings')}
             title={displayName}
-            className="min-h-touch min-w-touch flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="min-h-touch min-w-touch flex items-center justify-center rounded-full hover:bg-[var(--well)] transition-colors"
           >
             {avatarUrl ? (
               <img

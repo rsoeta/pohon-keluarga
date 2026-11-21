@@ -6,16 +6,16 @@ function themeColors() {
     document.documentElement.classList.contains('dark');
   return dark
     ? {
-        background: '#0f172a',
-        color: '#f1f5f9',
-        confirmButtonColor: '#0d9488',
-        cancelButtonColor: '#334155'
+        background: '#121d1c',
+        color: '#e5efec',
+        confirmButtonColor: '#0d5c55',
+        cancelButtonColor: '#243634'
       }
     : {
-        background: '#ffffff',
-        color: '#0f172a',
-        confirmButtonColor: '#0f766e',
-        cancelButtonColor: '#64748b'
+        background: '#fbfcfb',
+        color: '#10231f',
+        confirmButtonColor: '#0d5c55',
+        cancelButtonColor: '#5e706b'
       };
 }
 

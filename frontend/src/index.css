@@ -2,6 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg: #eef2ef;
+  --glow-a: rgba(215, 239, 228, 0.85);
+  --glow-b: rgba(230, 238, 246, 0.85);
+  --surface: #fbfcfb;
+  --surface-2: #f4f7f5;
+  --raised: #ffffff;
+  --well: rgba(16, 35, 31, 0.06);
+
+  --side: #0f2d29;
+  --on-side: #dcebe7;
+  --side-dim: rgba(220, 235, 231, 0.72);
+  --side-pill: #c4ecd9;
+  --on-side-pill: #0b2925;
+
+  --primary: #0d5c55;
+  --primary-hover: #0a4b45;
+  --on-primary: #f1fbf7;
+
+  --wa: #15803d;
+  --wa-hover: #166534;
+
+  --text: #10231f;
+  --muted: #4b5e59;
+  --faint: #5e706b;
+
+  --line: rgba(16, 35, 31, 0.1);
+  --line-2: rgba(16, 35, 31, 0.18);
+
+  --shadow-card: 0 1px 2px rgba(16, 35, 31, 0.04), 0 14px 34px -22px rgba(16, 35, 31, 0.24);
+  --shadow-float: 0 24px 60px -18px rgba(16, 35, 31, 0.34), 0 2px 8px rgba(16, 35, 31, 0.1);
+
+  --ease-tend: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.dark {
+  --bg: #0b1312;
+  --glow-a: rgba(19, 138, 126, 0.16);
+  --glow-b: rgba(76, 148, 220, 0.09);
+  --surface: #121d1c;
+  --surface-2: #172423;
+  --raised: #1b2a28;
+  --well: rgba(229, 239, 236, 0.08);
+
+  --side: #0e1918;
+  --on-side: #dcebe7;
+  --side-dim: rgba(220, 235, 231, 0.68);
+  --side-pill: #5cd0b4;
+  --on-side-pill: #06201c;
+
+  --primary: #5cd0b4;
+  --primary-hover: #74dac1;
+  --on-primary: #06201c;
+
+  --wa: #15803d;
+  --wa-hover: #166534;
+
+  --text: #e5efec;
+  --muted: #9db0aa;
+  --faint: #849993;
+
+  --line: rgba(229, 239, 236, 0.1);
+  --line-2: rgba(229, 239, 236, 0.18);
+
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 18px 40px -26px rgba(0, 0, 0, 0.78);
+  --shadow-float: 0 24px 60px -16px rgba(0, 0, 0, 0.75), 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+}
+
 @layer base {
   html {
     font-size: 16px;
@@ -11,6 +79,8 @@
 
   body {
     font-family: 'Quicksand', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
     overflow-x: hidden;
     -webkit-tap-highlight-color: transparent;
   }
@@ -21,16 +91,105 @@
   }
 }
 
+.app-canvas {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(64rem 40rem at 8% -4%, var(--glow-a), transparent 62%),
+    radial-gradient(56rem 36rem at 96% 2%, var(--glow-b), transparent 60%);
+  background-attachment: fixed;
+}
+
+.skip-link {
+  position: fixed;
+  top: -60px;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.65rem 1.15rem;
+  border-radius: 9999px;
+  background-color: var(--side);
+  color: var(--on-side);
+  font-weight: 700;
+  font-size: 0.875rem;
+  box-shadow: var(--shadow-float);
+  transition: top 0.18s var(--ease-tend);
+}
+
+.skip-link:focus {
+  top: 0.85rem;
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@keyframes drawerSlideInRight {
+  from {
+    opacity: 0.4;
+    transform: translate3d(24px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes drawerSlideInBottom {
+  from {
+    opacity: 0.4;
+    transform: translate3d(0, 24px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes paletteIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.drawer-enter {
+  animation: drawerSlideInRight 0.22s var(--ease-tend);
+}
+
+@media (max-width: 639px) {
+  .drawer-enter {
+    animation: drawerSlideInBottom 0.22s var(--ease-tend);
+  }
+}
+
+.palette-enter {
+  animation: paletteIn 0.18s var(--ease-tend);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 @layer utilities {
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
 
-/* Penyesuaian SweetAlert2: font Quicksand, target sentuh >= 48px, Light & Dark Mode */
+/* Penyesuaian SweetAlert2: font Quicksand, palet organic pine/teal, target sentuh >= 48px */
 .swal2-popup.nasab-swal-popup {
   font-family: 'Quicksand', ui-sans-serif, system-ui, sans-serif;
-  border-radius: 1.25rem;
+  border-radius: 1.375rem;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-float);
   padding: 1.5rem;
   max-width: min(92vw, 26rem);
 }
@@ -51,8 +210,8 @@
 .swal2-deny.nasab-swal-deny {
   min-height: 3rem;
   min-width: 5.5rem;
-  padding: 0.65rem 1.25rem;
-  border-radius: 0.75rem;
+  padding: 0.65rem 1.35rem;
+  border-radius: 9999px;
   font-family: 'Quicksand', ui-sans-serif, system-ui, sans-serif;
   font-weight: 700;
   font-size: 0.95rem;
@@ -60,5 +219,6 @@
 
 .swal2-popup.swal2-toast.nasab-swal-toast {
   font-family: 'Quicksand', ui-sans-serif, system-ui, sans-serif;
-  border-radius: 0.9rem;
+  border-radius: 9999px;
+  border: 1px solid var(--line);
 }

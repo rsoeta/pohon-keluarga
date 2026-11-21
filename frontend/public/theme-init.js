@@ -8,6 +8,6 @@
     if (dark) root.classList.add('dark');
     else root.classList.remove('dark');
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', dark ? '#0f172a' : '#0f766e');
+    if (meta) meta.setAttribute('content', dark ? '#0b1312' : '#0f2d29');
   } catch (e) {}
 })();

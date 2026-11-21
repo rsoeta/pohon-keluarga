@@ -391,13 +391,9 @@ export function MemberFormPage() {
 
   if (!isEdit && !admin && !user?.id_anggota) {
     return (
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 text-center space-y-3 shadow-sm">
-        <h1 className="text-lg font-bold text-slate-900 dark:text-white">
-          {t('form.needLinkedProfileTitle')}
-        </h1>
-        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto">
-          {t('form.needLinkedProfileDesc')}
-        </p>
+      <div className="bg-surface rounded-card border border-line p-6 text-center space-y-3 shadow-card">
+        <h1 className="text-lg font-bold text-ink">{t('form.needLinkedProfileTitle')}</h1>
+        <p className="text-sm text-muted max-w-md mx-auto">{t('form.needLinkedProfileDesc')}</p>
       </div>
     );
   }
@@ -408,12 +404,12 @@ export function MemberFormPage() {
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="min-h-touch px-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm font-bold inline-flex items-center gap-2 shadow-sm"
+          className="min-h-touch px-4 rounded-full bg-surface border border-line text-sm font-bold text-ink inline-flex items-center gap-2 shadow-card hover:bg-surface-2"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>{t('common.back')}</span>
         </button>
-        <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+        <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-ink">
           {isEdit ? t('form.editTitle') : t('form.addTitle')}
         </h1>
       </div>
@@ -421,8 +417,8 @@ export function MemberFormPage() {
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         {/* Mode Tambah */}
         {!isEdit && (
-          <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm space-y-2.5">
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-2.5">
+            <p className="text-xs font-bold uppercase tracking-wider text-faint">
               {t('form.modeLabel')}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -431,10 +427,10 @@ export function MemberFormPage() {
                   <button
                     type="button"
                     onClick={() => setAddMode('spouse')}
-                    className={`flex-1 min-w-[9rem] min-h-touch px-3 rounded-xl text-xs font-bold border ${
+                    className={`flex-1 min-w-[9rem] min-h-touch px-3.5 rounded-full text-xs font-bold border transition-colors ${
                       addMode === 'spouse'
-                        ? 'bg-brand-700 text-white border-brand-700'
-                        : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                        ? 'bg-brand-700 text-white border-brand-700 shadow-sm'
+                        : 'bg-surface-2 text-ink border-line hover:bg-[var(--well)]'
                     }`}
                   >
                     {t('form.modeSelfSpouse')}
@@ -442,10 +438,10 @@ export function MemberFormPage() {
                   <button
                     type="button"
                     onClick={() => setAddMode('child')}
-                    className={`flex-1 min-w-[9rem] min-h-touch px-3 rounded-xl text-xs font-bold border ${
+                    className={`flex-1 min-w-[9rem] min-h-touch px-3.5 rounded-full text-xs font-bold border transition-colors ${
                       addMode === 'child'
-                        ? 'bg-brand-700 text-white border-brand-700'
-                        : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                        ? 'bg-brand-700 text-white border-brand-700 shadow-sm'
+                        : 'bg-surface-2 text-ink border-line hover:bg-[var(--well)]'
                     }`}
                   >
                     {t('form.modeSelfChild')}
@@ -462,10 +458,10 @@ export function MemberFormPage() {
                       key={m}
                       type="button"
                       onClick={() => setAddMode(m)}
-                      className={`flex-1 min-w-[8rem] min-h-touch px-3 rounded-xl text-xs font-bold border ${
+                      className={`flex-1 min-w-[8rem] min-h-touch px-3.5 rounded-full text-xs font-bold border transition-colors ${
                         addMode === m
-                          ? 'bg-brand-700 text-white border-brand-700'
-                          : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                          ? 'bg-brand-700 text-white border-brand-700 shadow-sm'
+                          : 'bg-surface-2 text-ink border-line hover:bg-[var(--well)]'
                       }`}
                     >
                       {label}
@@ -478,8 +474,8 @@ export function MemberFormPage() {
         )}
 
         {/* Unggah & Kompresi Foto Profil */}
-        <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm space-y-3">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3">
+          <p className="text-xs font-bold uppercase tracking-wider text-faint">
             {t('form.photoSection')}
           </p>
           <div className="flex flex-wrap items-center gap-4">
@@ -493,7 +489,7 @@ export function MemberFormPage() {
             />
             <div className="flex-1 min-w-[12rem] space-y-2">
               <div className="flex flex-wrap gap-2">
-                <label className="min-h-touch px-4 py-2 rounded-xl bg-brand-50 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-800 text-brand-800 dark:text-brand-200 text-xs font-bold inline-flex items-center gap-2 cursor-pointer hover:bg-brand-100">
+                <label className="min-h-touch px-4 py-2 rounded-full bg-brand-100/80 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-800 text-brand-800 dark:text-brand-200 text-xs font-bold inline-flex items-center gap-2 cursor-pointer hover:bg-brand-100">
                   <Camera className="w-4 h-4" />
                   <span>{t('form.choosePhoto')}</span>
                   <input
@@ -511,7 +507,7 @@ export function MemberFormPage() {
                       setCompressedPhoto(null);
                       if (existing?.foto_file_id) setRemoveExistingPhoto(true);
                     }}
-                    className="min-h-touch px-3 rounded-xl border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-bold inline-flex items-center gap-1"
+                    className="min-h-touch px-3.5 rounded-full border border-rose-300/80 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-bold inline-flex items-center gap-1 hover:bg-rose-50 dark:hover:bg-rose-950/30"
                   >
                     <X className="w-4 h-4" />
                     <span>{t('form.removePhoto')}</span>
@@ -519,7 +515,7 @@ export function MemberFormPage() {
                 )}
               </div>
 
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-muted">
                 {compressedPhoto
                   ? t('form.compressedInfo', {
                       kb: Math.max(1, Math.round(compressedPhoto.size / 1024)),
@@ -535,17 +531,17 @@ export function MemberFormPage() {
 
         {/* Relasi Pernikahan saat tambah pasangan */}
         {!isEdit && addMode === 'spouse' && (
-          <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm space-y-3">
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3">
+            <p className="text-xs font-bold uppercase tracking-wider text-faint">
               {t('form.marriageSection')}
             </p>
             {admin && (
               <div>
-                <label className="block text-sm font-bold mb-1">{t('form.partnerWith')}</label>
+                <label className="block text-sm font-bold text-ink mb-1">{t('form.partnerWith')}</label>
                 <select
                   value={targetId}
                   onChange={(e) => setTargetId(e.target.value)}
-                  className="w-full min-h-touch px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+                  className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
                 >
                   <option value="">{t('form.selectMember')}</option>
                   {activeMembers.map((a) => (
@@ -559,11 +555,11 @@ export function MemberFormPage() {
 
             <div className="flex flex-wrap gap-3">
               <div className="flex-1 min-w-[9rem]">
-                <label className="block text-sm font-bold mb-1">{t('form.marriageStatus')}</label>
+                <label className="block text-sm font-bold text-ink mb-1">{t('form.marriageStatus')}</label>
                 <select
                   value={marriageStatus}
                   onChange={(e) => setMarriageStatus(e.target.value)}
-                  className="w-full min-h-touch px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+                  className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
                 >
                   <option value="Aktif">{t('common.marriedActive')}</option>
                   <option value="Cerai">{t('common.marriedDivorced')}</option>
@@ -571,7 +567,7 @@ export function MemberFormPage() {
                 </select>
               </div>
               <div className="w-36">
-                <label className="block text-sm font-bold mb-1">{t('form.spouseOrder')}</label>
+                <label className="block text-sm font-bold text-ink mb-1">{t('form.spouseOrder')}</label>
                 <input
                   type="number"
                   min="1"
@@ -579,7 +575,7 @@ export function MemberFormPage() {
                   value={spouseOrder}
                   onChange={(e) => setSpouseOrder(e.target.value)}
                   placeholder="1"
-                  className="w-full min-h-touch px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+                  className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
                 />
               </div>
             </div>
@@ -587,9 +583,9 @@ export function MemberFormPage() {
         )}
 
         {/* Biodata Utama */}
-        <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm space-y-4">
+        <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-4">
           <div>
-            <label htmlFor="f-nama" className="block text-sm font-bold mb-1.5">
+            <label htmlFor="f-nama" className="block text-sm font-bold text-ink mb-1.5">
               {t('form.fullName')} *
             </label>
             <input
@@ -600,12 +596,12 @@ export function MemberFormPage() {
               value={namaLengkap}
               onChange={(e) => setNamaLengkap(e.target.value)}
               placeholder={t('form.fullNamePlaceholder')}
-              className="w-full min-h-touch px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full min-h-touch px-4 py-2.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-bold mb-1.5">{t('form.gender')}</label>
+            <label className="block text-sm font-bold text-ink mb-1.5">{t('form.gender')}</label>
             <div className="flex flex-wrap gap-2">
               {[
                 ['L', t('common.male')],
@@ -616,10 +612,10 @@ export function MemberFormPage() {
                   type="button"
                   disabled={genderLocked}
                   onClick={() => setJenisKelamin(val)}
-                  className={`flex-1 min-w-[8rem] min-h-touch px-4 rounded-xl text-sm font-bold border disabled:opacity-60 ${
+                  className={`flex-1 min-w-[8rem] min-h-touch px-4 rounded-full text-sm font-bold border disabled:opacity-60 transition-colors ${
                     jenisKelamin === val
-                      ? 'bg-brand-700 text-white border-brand-700'
-                      : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                      ? 'bg-brand-700 text-white border-brand-700 shadow-sm'
+                      : 'bg-surface-2 text-ink border-line hover:bg-[var(--well)]'
                   }`}
                 >
                   {label}
@@ -627,15 +623,13 @@ export function MemberFormPage() {
               ))}
             </div>
             {genderLocked && isEdit && (
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {t('form.genderLockedHint')}
-              </p>
+              <p className="text-xs text-muted mt-1">{t('form.genderLockedHint')}</p>
             )}
           </div>
 
           {/* Tanggal Lahir 3 Mode */}
           <div className="space-y-2">
-            <label className="block text-sm font-bold">{t('form.birthModeLabel')}</label>
+            <label className="block text-sm font-bold text-ink">{t('form.birthModeLabel')}</label>
             <div className="flex flex-wrap gap-2">
               {[
                 ['full', t('form.birthModeFull')],
@@ -646,10 +640,10 @@ export function MemberFormPage() {
                   key={m}
                   type="button"
                   onClick={() => setBirthMode(m)}
-                  className={`flex-1 min-w-[6.5rem] min-h-touch px-3 rounded-xl text-xs font-bold border ${
+                  className={`flex-1 min-w-[6.5rem] min-h-touch px-3 rounded-full text-xs font-bold border transition-colors ${
                     birthMode === m
-                      ? 'bg-brand-700 text-white border-brand-700'
-                      : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                      ? 'bg-brand-700 text-white border-brand-700 shadow-sm'
+                      : 'bg-surface-2 text-ink border-line hover:bg-[var(--well)]'
                   }`}
                 >
                   {label}
@@ -662,7 +656,7 @@ export function MemberFormPage() {
                 type="date"
                 value={birthFull}
                 onChange={(e) => setBirthFull(e.target.value)}
-                className="w-full min-h-touch px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+                className="w-full min-h-touch px-4 py-2.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
               />
             )}
             {birthMode === 'year' && (
@@ -673,7 +667,7 @@ export function MemberFormPage() {
                 value={birthYear}
                 onChange={(e) => setBirthYear(e.target.value)}
                 placeholder={t('form.yearPlaceholder')}
-                className="w-full min-h-touch px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+                className="w-full min-h-touch px-4 py-2.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
               />
             )}
           </div>
@@ -681,7 +675,7 @@ export function MemberFormPage() {
           {/* Status Hidup & Anak */}
           <div className="flex flex-wrap gap-3">
             <div className="flex-1 min-w-[9rem]">
-              <label className="block text-sm font-bold mb-1.5">{t('form.livingStatus')}</label>
+              <label className="block text-sm font-bold text-ink mb-1.5">{t('form.livingStatus')}</label>
               <div className="flex gap-2">
                 {[
                   [true, t('common.living')],
@@ -691,10 +685,10 @@ export function MemberFormPage() {
                     key={String(v)}
                     type="button"
                     onClick={() => setStatusHidup(v)}
-                    className={`flex-1 min-h-touch px-3 rounded-xl text-xs font-bold border ${
+                    className={`flex-1 min-h-touch px-3 rounded-full text-xs font-bold border transition-colors ${
                       statusHidup === v
-                        ? 'bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 border-transparent'
-                        : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                        ? 'bg-side text-[var(--on-side)] border-transparent shadow-sm'
+                        : 'bg-surface-2 text-ink border-line hover:bg-[var(--well)]'
                     }`}
                   >
                     {label}
@@ -704,7 +698,7 @@ export function MemberFormPage() {
             </div>
 
             <div className="flex-1 min-w-[9rem]">
-              <label className="block text-sm font-bold mb-1.5">{t('form.childStatus')}</label>
+              <label className="block text-sm font-bold text-ink mb-1.5">{t('form.childStatus')}</label>
               <div className="flex gap-2">
                 {[
                   ['Kandung', t('common.biological')],
@@ -714,10 +708,10 @@ export function MemberFormPage() {
                     key={v}
                     type="button"
                     onClick={() => setStatusAnak(v)}
-                    className={`flex-1 min-h-touch px-3 rounded-xl text-xs font-bold border ${
+                    className={`flex-1 min-h-touch px-3 rounded-full text-xs font-bold border transition-colors ${
                       statusAnak === v
-                        ? 'bg-heritage-600 text-white border-heritage-600'
-                        : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                        ? 'bg-heritage-600 text-white border-heritage-600 shadow-sm'
+                        : 'bg-surface-2 text-ink border-line hover:bg-[var(--well)]'
                     }`}
                   >
                     {label}
@@ -729,7 +723,7 @@ export function MemberFormPage() {
 
           <div className="flex flex-wrap gap-3">
             <div className="w-36">
-              <label htmlFor="f-urutan" className="block text-sm font-bold mb-1">
+              <label htmlFor="f-urutan" className="block text-sm font-bold text-ink mb-1">
                 {t('form.childOrder')}
               </label>
               <input
@@ -740,12 +734,12 @@ export function MemberFormPage() {
                 value={urutanAnak}
                 onChange={(e) => setUrutanAnak(e.target.value)}
                 placeholder={t('form.childOrderPlaceholder')}
-                className="w-full min-h-touch px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+                className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
               />
             </div>
 
             <div className="flex-1 min-w-[11rem]">
-              <label htmlFor="f-domisili" className="block text-sm font-bold mb-1">
+              <label htmlFor="f-domisili" className="block text-sm font-bold text-ink mb-1">
                 {t('form.domicile')}
               </label>
               <input
@@ -755,13 +749,13 @@ export function MemberFormPage() {
                 value={domisili}
                 onChange={(e) => setDomisili(e.target.value)}
                 placeholder={t('form.domicilePlaceholder')}
-                className="w-full min-h-touch px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+                className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="f-wa" className="block text-sm font-bold mb-1">
+            <label htmlFor="f-wa" className="block text-sm font-bold text-ink mb-1">
               {t('form.noWa')}
             </label>
             <input
@@ -770,25 +764,25 @@ export function MemberFormPage() {
               value={noWa}
               onChange={(e) => setNoWa(e.target.value)}
               placeholder={t('form.noWaPlaceholder')}
-              className="w-full min-h-touch px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold"
+              className="w-full min-h-touch px-4 py-2.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
             />
           </div>
         </section>
 
         {/* Orang Tua (ketika mode anak/mandiri atau edit anak/admin) */}
         {((!isEdit && addMode !== 'spouse') || canEditLineageOnEdit) && (
-          <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm space-y-3">
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3">
+            <p className="text-xs font-bold uppercase tracking-wider text-faint">
               {t('form.lineageSection')}
             </p>
             <div className="flex flex-wrap gap-3">
               <div className="flex-1 min-w-[11rem]">
-                <label className="block text-sm font-bold mb-1">{t('form.fatherLabel')}</label>
+                <label className="block text-sm font-bold text-ink mb-1">{t('form.fatherLabel')}</label>
                 <select
                   value={idAyah}
                   disabled={!admin && byId.get(user?.id_anggota)?.jenis_kelamin === 'L'}
                   onChange={(e) => setIdAyah(e.target.value)}
-                  className="w-full min-h-touch px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold disabled:opacity-70"
+                  className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold disabled:opacity-70"
                 >
                   <option value="">{t('form.noneSelected')}</option>
                   {fatherOptions.map((a) => (
@@ -800,12 +794,12 @@ export function MemberFormPage() {
               </div>
 
               <div className="flex-1 min-w-[11rem]">
-                <label className="block text-sm font-bold mb-1">{t('form.motherLabel')}</label>
+                <label className="block text-sm font-bold text-ink mb-1">{t('form.motherLabel')}</label>
                 <select
                   value={idIbu}
                   disabled={!admin && byId.get(user?.id_anggota)?.jenis_kelamin === 'P'}
                   onChange={(e) => setIdIbu(e.target.value)}
-                  className="w-full min-h-touch px-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold disabled:opacity-70"
+                  className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold disabled:opacity-70"
                 >
                   <option value="">{t('form.noneSelected')}</option>
                   {motherOptions.map((a) => (
@@ -822,7 +816,7 @@ export function MemberFormPage() {
         <button
           type="submit"
           disabled={saving || !isOnline}
-          className="w-full min-h-touch px-5 py-3 rounded-2xl bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold text-base flex items-center justify-center gap-2 shadow-md shadow-brand-700/20"
+          className="w-full min-h-touch px-5 py-3 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm"
         >
           <Save className="w-5 h-5" />
           <span>{saving ? t('common.saving') : t('common.save')}</span>
@@ -831,8 +825,8 @@ export function MemberFormPage() {
 
       {/* Kelola Status Pernikahan Eksisting pada Mode Edit */}
       {isEdit && editableMarriages.length > 0 && (
-        <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm space-y-3">
-          <h2 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-faint">
             {t('form.manageMarriagesTitle')}
           </h2>
           {editableMarriages.map(({ pernikahan, partner }) => {
@@ -843,9 +837,9 @@ export function MemberFormPage() {
             return (
               <div
                 key={pernikahan.id_pernikahan}
-                className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 flex flex-wrap items-center justify-between gap-2"
+                className="p-3 rounded-tile bg-surface-2 border border-line flex flex-wrap items-center justify-between gap-2"
               >
-                <p className="text-sm font-bold text-slate-900 dark:text-white min-w-[8rem] flex-1">
+                <p className="text-sm font-bold text-ink min-w-[8rem] flex-1">
                   {partner.nama_lengkap}
                 </p>
                 <select
@@ -856,7 +850,7 @@ export function MemberFormPage() {
                       [pernikahan.id_pernikahan]: { ...ed, status_pernikahan: e.target.value }
                     }))
                   }
-                  className="min-h-touch px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold"
+                  className="min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface text-ink text-xs font-bold"
                 >
                   <option value="Aktif">{t('common.marriedActive')}</option>
                   <option value="Cerai">{t('common.marriedDivorced')}</option>
@@ -866,7 +860,7 @@ export function MemberFormPage() {
                   type="button"
                   onClick={() => handleSaveMarriage(pernikahan.id_pernikahan)}
                   disabled={!isOnline}
-                  className="min-h-touch px-3.5 rounded-xl bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 text-xs font-bold"
+                  className="min-h-touch px-3.5 rounded-full bg-side text-[var(--on-side)] text-xs font-bold"
                 >
                   {t('form.saveMarriageBtn')}
                 </button>
@@ -882,7 +876,7 @@ export function MemberFormPage() {
           type="button"
           onClick={handleDeleteMember}
           disabled={!isOnline}
-          className="w-full min-h-touch px-4 py-3 rounded-2xl border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-bold text-sm flex items-center justify-center gap-2"
+          className="w-full min-h-touch px-4 py-3 rounded-full border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-bold text-sm flex items-center justify-center gap-2"
         >
           <Trash2 className="w-4 h-4" />
           <span>{t('profile.deleteBtn')}</span>

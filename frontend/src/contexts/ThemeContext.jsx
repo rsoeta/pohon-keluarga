@@ -24,7 +24,7 @@ function applyThemeToDom(theme) {
   document.documentElement.classList.toggle('dark', isDark);
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {
-    meta.setAttribute('content', isDark ? '#0f172a' : '#0f766e');
+    meta.setAttribute('content', isDark ? '#0b1312' : '#0f2d29');
   }
 }
 
