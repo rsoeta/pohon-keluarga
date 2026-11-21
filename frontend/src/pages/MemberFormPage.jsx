@@ -11,6 +11,7 @@ import { compressImageFile } from '../lib/imageCompress.js';
 import { validateBirthDateInput } from '../lib/format.js';
 import { alertError, confirmAction, toastError, toastSuccess } from '../lib/swal.js';
 import { MemberAvatar } from '../components/common/MemberAvatar.jsx';
+import { SegmentedPillControl } from '../components/common/SegmentedPillControl.jsx';
 
 export function MemberFormPage() {
   const { id } = useParams();
@@ -421,55 +422,27 @@ export function MemberFormPage() {
             <p className="text-xs font-bold uppercase tracking-wider text-faint">
               {t('form.modeLabel')}
             </p>
-            <div className="flex flex-wrap gap-2">
-              {!admin ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setAddMode('spouse')}
-                    className={`flex-1 min-w-[9rem] min-h-touch px-3.5 rounded-full text-xs font-bold border transition-colors ${
-                      addMode === 'spouse'
-                        ? 'bg-brand-700 text-white border-brand-700 shadow-sm'
-                        : 'bg-surface-2 text-ink border-line hover:bg-[var(--well)]'
-                    }`}
-                  >
-                    {t('form.modeSelfSpouse')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAddMode('child')}
-                    className={`flex-1 min-w-[9rem] min-h-touch px-3.5 rounded-full text-xs font-bold border transition-colors ${
-                      addMode === 'child'
-                        ? 'bg-brand-700 text-white border-brand-700 shadow-sm'
-                        : 'bg-surface-2 text-ink border-line hover:bg-[var(--well)]'
-                    }`}
-                  >
-                    {t('form.modeSelfChild')}
-                  </button>
-                </>
-              ) : (
-                <>
-                  {[
-                    ['independent', t('form.modeIndependent')],
-                    ['spouse', t('form.modeSpouseFor')],
-                    ['child', t('form.modeChildFor')]
-                  ].map(([m, label]) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setAddMode(m)}
-                      className={`flex-1 min-w-[8rem] min-h-touch px-3.5 rounded-full text-xs font-bold border transition-colors ${
-                        addMode === m
-                          ? 'bg-brand-700 text-white border-brand-700 shadow-sm'
-                          : 'bg-surface-2 text-ink border-line hover:bg-[var(--well)]'
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </>
-              )}
-            </div>
+            <SegmentedPillControl
+              ariaLabel={t('form.modeLabel')}
+              value={addMode}
+              onChange={setAddMode}
+              fullWidth
+              tone="brand"
+              className="bg-surface-2"
+              buttonClassName="min-w-[8.5rem]"
+              options={
+                !admin
+                  ? [
+                      { value: 'spouse', label: t('form.modeSelfSpouse') },
+                      { value: 'child', label: t('form.modeSelfChild') }
+                    ]
+                  : [
+                      { value: 'independent', label: t('form.modeIndependent') },
+                      { value: 'spouse', label: t('form.modeSpouseFor') },
+                      { value: 'child', label: t('form.modeChildFor') }
+                    ]
+              }
+            />
           </section>
         )}
 
@@ -602,26 +575,19 @@ export function MemberFormPage() {
 
           <div>
             <label className="block text-sm font-bold text-ink mb-1.5">{t('form.gender')}</label>
-            <div className="flex flex-wrap gap-2">
-              {[
-                ['L', t('common.male')],
-                ['P', t('common.female')]
-              ].map(([val, label]) => (
-                <button
-                  key={val}
-                  type="button"
-                  disabled={genderLocked}
-                  onClick={() => setJenisKelamin(val)}
-                  className={`flex-1 min-w-[8rem] min-h-touch px-4 rounded-full text-sm font-bold border disabled:opacity-60 transition-colors ${
-                    jenisKelamin === val
-                      ? 'bg-brand-700 text-white border-brand-700 shadow-sm'
-                      : 'bg-surface-2 text-ink border-line hover:bg-[var(--well)]'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            <SegmentedPillControl
+              ariaLabel={t('form.gender')}
+              value={jenisKelamin}
+              onChange={setJenisKelamin}
+              fullWidth
+              tone="brand"
+              className="bg-surface-2"
+              buttonClassName="min-w-[8rem] text-sm"
+              options={[
+                { value: 'L', label: t('common.male'), disabled: genderLocked },
+                { value: 'P', label: t('common.female'), disabled: genderLocked }
+              ]}
+            />
             {genderLocked && isEdit && (
               <p className="text-xs text-muted mt-1">{t('form.genderLockedHint')}</p>
             )}
@@ -630,26 +596,20 @@ export function MemberFormPage() {
           {/* Tanggal Lahir 3 Mode */}
           <div className="space-y-2">
             <label className="block text-sm font-bold text-ink">{t('form.birthModeLabel')}</label>
-            <div className="flex flex-wrap gap-2">
-              {[
-                ['full', t('form.birthModeFull')],
-                ['year', t('form.birthModeYear')],
-                ['empty', t('form.birthModeEmpty')]
-              ].map(([m, label]) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setBirthMode(m)}
-                  className={`flex-1 min-w-[6.5rem] min-h-touch px-3 rounded-full text-xs font-bold border transition-colors ${
-                    birthMode === m
-                      ? 'bg-brand-700 text-white border-brand-700 shadow-sm'
-                      : 'bg-surface-2 text-ink border-line hover:bg-[var(--well)]'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            <SegmentedPillControl
+              ariaLabel={t('form.birthModeLabel')}
+              value={birthMode}
+              onChange={setBirthMode}
+              fullWidth
+              tone="brand"
+              className="bg-surface-2"
+              buttonClassName="min-w-[6.5rem]"
+              options={[
+                { value: 'full', label: t('form.birthModeFull') },
+                { value: 'year', label: t('form.birthModeYear') },
+                { value: 'empty', label: t('form.birthModeEmpty') }
+              ]}
+            />
 
             {birthMode === 'full' && (
               <input
@@ -674,50 +634,36 @@ export function MemberFormPage() {
 
           {/* Status Hidup & Anak */}
           <div className="flex flex-wrap gap-3">
-            <div className="flex-1 min-w-[9rem]">
+            <div className="flex-1 min-w-[12rem]">
               <label className="block text-sm font-bold text-ink mb-1.5">{t('form.livingStatus')}</label>
-              <div className="flex gap-2">
-                {[
-                  [true, t('common.living')],
-                  [false, t('common.deceased')]
-                ].map(([v, label]) => (
-                  <button
-                    key={String(v)}
-                    type="button"
-                    onClick={() => setStatusHidup(v)}
-                    className={`flex-1 min-h-touch px-3 rounded-full text-xs font-bold border transition-colors ${
-                      statusHidup === v
-                        ? 'bg-side text-[var(--on-side)] border-transparent shadow-sm'
-                        : 'bg-surface-2 text-ink border-line hover:bg-[var(--well)]'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
+              <SegmentedPillControl
+                ariaLabel={t('form.livingStatus')}
+                value={statusHidup}
+                onChange={setStatusHidup}
+                fullWidth
+                tone="pine"
+                className="bg-surface-2"
+                options={[
+                  { value: true, label: t('common.living') },
+                  { value: false, label: t('common.deceased') }
+                ]}
+              />
             </div>
 
-            <div className="flex-1 min-w-[9rem]">
+            <div className="flex-1 min-w-[12rem]">
               <label className="block text-sm font-bold text-ink mb-1.5">{t('form.childStatus')}</label>
-              <div className="flex gap-2">
-                {[
-                  ['Kandung', t('common.biological')],
-                  ['Angkat', t('common.adopted')]
-                ].map(([v, label]) => (
-                  <button
-                    key={v}
-                    type="button"
-                    onClick={() => setStatusAnak(v)}
-                    className={`flex-1 min-h-touch px-3 rounded-full text-xs font-bold border transition-colors ${
-                      statusAnak === v
-                        ? 'bg-heritage-600 text-white border-heritage-600 shadow-sm'
-                        : 'bg-surface-2 text-ink border-line hover:bg-[var(--well)]'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
+              <SegmentedPillControl
+                ariaLabel={t('form.childStatus')}
+                value={statusAnak}
+                onChange={setStatusAnak}
+                fullWidth
+                tone="heritage"
+                className="bg-surface-2"
+                options={[
+                  { value: 'Kandung', label: t('common.biological') },
+                  { value: 'Angkat', label: t('common.adopted') }
+                ]}
+              />
             </div>
           </div>
 

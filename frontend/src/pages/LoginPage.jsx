@@ -7,6 +7,7 @@ import { useI18n } from '../contexts/I18nContext.jsx';
 import { usePwaInstall } from '../hooks/usePwaInstall.js';
 import { isApiConfigured } from '../lib/api.js';
 import { alertError, toastSuccess } from '../lib/swal.js';
+import { SegmentedPillControl } from '../components/common/SegmentedPillControl.jsx';
 
 export function LoginPage() {
   const { isAuthenticated, login } = useAuth();
@@ -54,29 +55,22 @@ export function LoginPage() {
     <div className="min-h-dvh flex flex-col justify-between px-4 py-4 sm:py-8 app-canvas text-ink">
       {/* Baris atas: Alih Bahasa ID/EN & Dark Mode */}
       <div className="w-full max-w-md mx-auto flex flex-wrap items-center justify-between gap-2">
-        <div
-          role="group"
-          aria-label={t('settings.languageLabel')}
-          className="inline-flex items-center rounded-full bg-surface border border-line p-1 shadow-card"
-        >
-          <span className="px-2.5 text-muted" aria-hidden="true">
-            <Globe className="w-4 h-4" />
-          </span>
-          {['id', 'en'].map((code) => (
-            <button
-              key={code}
-              type="button"
-              onClick={() => setLang(code)}
-              className={`min-h-touch min-w-touch px-3 rounded-full text-xs font-bold uppercase transition-colors ${
-                lang === code
-                  ? 'bg-brand-700 text-white shadow-sm'
-                  : 'text-muted hover:text-ink hover:bg-[var(--well)]'
-              }`}
-            >
-              {code}
-            </button>
-          ))}
-        </div>
+        <SegmentedPillControl
+          ariaLabel={t('settings.languageLabel')}
+          value={lang}
+          onChange={setLang}
+          tone="brand"
+          buttonClassName="px-3 uppercase"
+          leading={
+            <span className="pl-2.5 pr-1 text-muted" aria-hidden="true">
+              <Globe className="w-4 h-4" />
+            </span>
+          }
+          options={[
+            { value: 'id', label: 'ID' },
+            { value: 'en', label: 'EN' }
+          ]}
+        />
 
         <button
           type="button"

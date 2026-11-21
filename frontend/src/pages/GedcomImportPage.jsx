@@ -5,6 +5,7 @@ import { api } from '../lib/api.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useI18n } from '../contexts/I18nContext.jsx';
 import { alertError, alertSuccess, confirmAction } from '../lib/swal.js';
+import { SegmentedPillControl } from '../components/common/SegmentedPillControl.jsx';
 
 const MAX_GEDCOM_BYTES = 5 * 1024 * 1024;
 
@@ -117,25 +118,19 @@ export function GedcomImportPage() {
           <p className="text-xs font-bold uppercase tracking-wider text-faint">
             {t('gedcom.modeLabel')}
           </p>
-          <div className="flex flex-wrap gap-2">
-            {[
-              ['merge', t('gedcom.modeMerge')],
-              ['insert_only', t('gedcom.modeInsertOnly')]
-            ].map(([val, label]) => (
-              <button
-                key={val}
-                type="button"
-                onClick={() => setMode(val)}
-                className={`flex-1 min-w-[12rem] min-h-touch px-4 py-2 rounded-full text-xs font-bold border text-left transition-colors ${
-                  mode === val
-                    ? 'bg-brand-700 text-white border-brand-700 shadow-sm'
-                    : 'bg-surface-2 text-ink border-line hover:bg-[var(--well)]'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          <SegmentedPillControl
+            ariaLabel={t('gedcom.modeLabel')}
+            value={mode}
+            onChange={setMode}
+            fullWidth
+            tone="brand"
+            className="bg-surface-2"
+            buttonClassName="min-w-[12rem] py-2"
+            options={[
+              { value: 'merge', label: t('gedcom.modeMerge') },
+              { value: 'insert_only', label: t('gedcom.modeInsertOnly') }
+            ]}
+          />
         </div>
 
         <button

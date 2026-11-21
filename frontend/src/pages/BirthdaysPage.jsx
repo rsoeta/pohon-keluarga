@@ -9,6 +9,7 @@ import { useQuickUi } from '../contexts/QuickUiContext.jsx';
 import { getBirthdaySchedule } from '../lib/birthday.js';
 import { formatTglLahir, formatWaUrl } from '../lib/format.js';
 import { MemberAvatar } from '../components/common/MemberAvatar.jsx';
+import { SegmentedPillControl } from '../components/common/SegmentedPillControl.jsx';
 
 export function BirthdaysPage() {
   const { isOnline } = useAuth();
@@ -175,26 +176,16 @@ export function BirthdaysPage() {
             )}
           </div>
 
-          <div className="flex flex-wrap gap-1.5">
-            {[
-              ['7', t('birthdays.filter7')],
-              ['30', t('birthdays.filter30')],
-              ['ALL', t('birthdays.filterAll')]
-            ].map(([val, label]) => (
-              <button
-                key={val}
-                type="button"
-                onClick={() => setRangeFilter(val)}
-                className={`min-h-touch px-3.5 rounded-full text-xs font-bold border transition-colors ${
-                  rangeFilter === val
-                    ? 'bg-brand-700 text-white border-brand-700 shadow-sm'
-                    : 'bg-surface text-ink border-line hover:bg-surface-2'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          <SegmentedPillControl
+            value={rangeFilter}
+            onChange={setRangeFilter}
+            tone="brand"
+            options={[
+              { value: '7', label: t('birthdays.filter7') },
+              { value: '30', label: t('birthdays.filter30') },
+              { value: 'ALL', label: t('birthdays.filterAll') }
+            ]}
+          />
         </div>
 
         {!filteredUpcoming.length ? (

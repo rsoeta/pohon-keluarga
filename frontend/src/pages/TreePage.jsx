@@ -24,6 +24,7 @@ import { canEditAnggota, isAdmin } from '../lib/rbac.js';
 import { extractBirthYear, formatKodeUnik } from '../lib/format.js';
 import { chooseTwoActions, selectOption, toastError, toastSuccess } from '../lib/swal.js';
 import { MemberAvatar } from '../components/common/MemberAvatar.jsx';
+import { SegmentedPillControl } from '../components/common/SegmentedPillControl.jsx';
 
 const MIN_SCALE = 0.35;
 const MAX_SCALE = 1.8;
@@ -268,52 +269,26 @@ export function TreePage() {
     <div className="space-y-3">
       {/* Bar Kontrol Atas — Fluid Flexbox tanpa horizontal scroll */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        {/* Sakelar Menurun / Mendatar */}
-        <div className="inline-flex rounded-full bg-surface border border-line p-1 shadow-card">
-          <button
-            type="button"
-            onClick={() => setOrientation('vertical')}
-            className={`min-h-touch px-3.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-colors ${
-              orientation === 'vertical'
-                ? 'bg-brand-700 text-white shadow-sm'
-                : 'text-muted hover:text-ink hover:bg-[var(--well)]'
-            }`}
-          >
-            <Rows3 className="w-4 h-4" />
-            <span>{t('tree.vertical')}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setOrientation('horizontal')}
-            className={`min-h-touch px-3.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-colors ${
-              orientation === 'horizontal'
-                ? 'bg-brand-700 text-white shadow-sm'
-                : 'text-muted hover:text-ink hover:bg-[var(--well)]'
-            }`}
-          >
-            <Columns3 className="w-4 h-4" />
-            <span>{t('tree.horizontal')}</span>
-          </button>
-        </div>
+        {/* Sakelar Menurun / Mendatar dengan indikator pill bergeser */}
+        <SegmentedPillControl
+          value={orientation}
+          onChange={setOrientation}
+          tone="brand"
+          options={[
+            { value: 'vertical', label: t('tree.vertical'), icon: Rows3 },
+            { value: 'horizontal', label: t('tree.horizontal'), icon: Columns3 }
+          ]}
+        />
 
         {/* Kedalaman Generasi & Navigasi Fokus */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <div className="inline-flex rounded-full bg-surface border border-line p-1 shadow-card">
-            {[3, 4].map((gen) => (
-              <button
-                key={gen}
-                type="button"
-                onClick={() => setMaxGenerations(gen)}
-                className={`min-h-touch px-3 rounded-full text-xs font-bold transition-colors ${
-                  maxGenerations === gen
-                    ? 'bg-heritage-600 text-white shadow-sm'
-                    : 'text-muted hover:text-ink hover:bg-[var(--well)]'
-                }`}
-              >
-                {gen}G
-              </button>
-            ))}
-          </div>
+          <SegmentedPillControl
+            value={maxGenerations}
+            onChange={setMaxGenerations}
+            tone="heritage"
+            buttonClassName="px-3"
+            options={[3, 4].map((gen) => ({ value: gen, label: `${gen}G` }))}
+          />
 
           {canGoUpParent && (
             <button

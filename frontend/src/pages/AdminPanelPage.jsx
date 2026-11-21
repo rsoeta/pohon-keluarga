@@ -22,6 +22,7 @@ import { api } from '../lib/api.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useI18n } from '../contexts/I18nContext.jsx';
 import { alertError, alertSuccess, confirmAction, promptInput, toastSuccess } from '../lib/swal.js';
+import { SegmentedPillControl } from '../components/common/SegmentedPillControl.jsx';
 
 function generateSecureTempPassword(length = 12) {
   const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -358,29 +359,22 @@ export function AdminPanelPage() {
         </button>
       </div>
 
-      {/* Tab Navigasi Fluid Flexbox */}
-      <div className="flex flex-wrap gap-2">
-        {[
-          ['stats', t('admin.tabStats'), BarChart3],
-          ['users', t('admin.tabUsers'), Users],
-          ['wa', t('admin.tabWa'), MessageSquare],
-          ['deleted', t('admin.tabDeleted'), Trash2]
-        ].map(([key, label, Icon]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setTab(key)}
-            className={`flex-1 min-w-[6.5rem] min-h-touch px-3.5 rounded-full text-xs font-bold border flex items-center justify-center gap-1.5 transition-colors ${
-              tab === key
-                ? 'bg-brand-700 text-white border-brand-700 shadow-sm'
-                : 'bg-surface text-ink border-line hover:bg-surface-2'
-            }`}
-          >
-            <Icon className="w-4 h-4 shrink-0" />
-            <span>{label}</span>
-          </button>
-        ))}
-      </div>
+      {/* Tab Navigasi Fluid Flexbox dengan indikator bergeser halus */}
+      <SegmentedPillControl
+        role="tablist"
+        ariaLabel={t('admin.title')}
+        value={tab}
+        onChange={setTab}
+        fullWidth
+        tone="brand"
+        buttonClassName="min-w-[6.5rem]"
+        options={[
+          { value: 'stats', label: t('admin.tabStats'), icon: BarChart3 },
+          { value: 'users', label: t('admin.tabUsers'), icon: Users },
+          { value: 'wa', label: t('admin.tabWa'), icon: MessageSquare },
+          { value: 'deleted', label: t('admin.tabDeleted'), icon: Trash2 }
+        ]}
+      />
 
       {/* TAB 1: STATISTIK */}
       {tab === 'stats' && (

@@ -9,6 +9,7 @@ import { useI18n } from '../contexts/I18nContext.jsx';
 import { useQuickUi } from '../contexts/QuickUiContext.jsx';
 import { extractBirthYear, formatKodeUnik } from '../lib/format.js';
 import { MemberAvatar } from '../components/common/MemberAvatar.jsx';
+import { SegmentedPillControl } from '../components/common/SegmentedPillControl.jsx';
 
 const PAGE_SIZE = 30;
 
@@ -85,63 +86,39 @@ export function DirectoryPage() {
         )}
       </div>
 
-      {/* Filter Responsif Fluid Flexbox (Tanpa Horizontal Scroll) */}
+      {/* Filter Responsif Fluid Flexbox dengan indikator pill bergeser halus */}
       <div className="flex flex-wrap gap-2">
-        {[
-          ['ALL', t('directory.filterGenderAll')],
-          ['L', t('common.male')],
-          ['P', t('common.female')]
-        ].map(([val, label]) => (
-          <button
-            key={`g-${val}`}
-            type="button"
-            onClick={() => setGenderFilter(val)}
-            className={`min-h-touch px-3.5 rounded-full text-xs font-bold border transition-colors ${
-              genderFilter === val
-                ? 'bg-brand-700 text-white border-brand-700 shadow-sm'
-                : 'bg-surface text-ink border-line hover:bg-surface-2'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+        <SegmentedPillControl
+          value={genderFilter}
+          onChange={setGenderFilter}
+          tone="brand"
+          options={[
+            { value: 'ALL', label: t('directory.filterGenderAll') },
+            { value: 'L', label: t('common.male') },
+            { value: 'P', label: t('common.female') }
+          ]}
+        />
 
-        {[
-          ['ALL', t('directory.filterLivingAll')],
-          ['LIVING', t('common.living')],
-          ['DECEASED', t('common.deceased')]
-        ].map(([val, label]) => (
-          <button
-            key={`l-${val}`}
-            type="button"
-            onClick={() => setLivingFilter(val)}
-            className={`min-h-touch px-3.5 rounded-full text-xs font-bold border transition-colors ${
-              livingFilter === val
-                ? 'bg-side text-[var(--on-side)] border-transparent shadow-sm'
-                : 'bg-surface text-ink border-line hover:bg-surface-2'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+        <SegmentedPillControl
+          value={livingFilter}
+          onChange={setLivingFilter}
+          tone="pine"
+          options={[
+            { value: 'ALL', label: t('directory.filterLivingAll') },
+            { value: 'LIVING', label: t('common.living') },
+            { value: 'DECEASED', label: t('common.deceased') }
+          ]}
+        />
 
-        {[
-          ['ALL', t('directory.filterChildAll')],
-          ['Angkat', t('common.adopted')]
-        ].map(([val, label]) => (
-          <button
-            key={`c-${val}`}
-            type="button"
-            onClick={() => setChildFilter(val)}
-            className={`min-h-touch px-3.5 rounded-full text-xs font-bold border transition-colors ${
-              childFilter === val
-                ? 'bg-heritage-600 text-white border-heritage-600 shadow-sm'
-                : 'bg-surface text-ink border-line hover:bg-surface-2'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+        <SegmentedPillControl
+          value={childFilter}
+          onChange={setChildFilter}
+          tone="heritage"
+          options={[
+            { value: 'ALL', label: t('directory.filterChildAll') },
+            { value: 'Angkat', label: t('common.adopted') }
+          ]}
+        />
       </div>
 
       {/* Daftar Kartu Anggota */}

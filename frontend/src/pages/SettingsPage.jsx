@@ -25,6 +25,7 @@ import { useTheme } from '../contexts/ThemeContext.jsx';
 import { useI18n } from '../contexts/I18nContext.jsx';
 import { usePwaInstall } from '../hooks/usePwaInstall.js';
 import { alertError, alertSuccess, confirmAction, toastSuccess } from '../lib/swal.js';
+import { SegmentedPillControl } from '../components/common/SegmentedPillControl.jsx';
 
 export function SettingsPage() {
   const {
@@ -169,20 +170,18 @@ export function SettingsPage() {
             <Globe className="w-5 h-5 text-brand-700 dark:text-brand-300 shrink-0" />
             <span className="text-sm font-bold text-ink">{t('settings.languageLabel')}</span>
           </div>
-          <div className="inline-flex rounded-full bg-surface-2 border border-line p-1">
-            {['id', 'en'].map((code) => (
-              <button
-                key={code}
-                type="button"
-                onClick={() => setLang(code)}
-                className={`min-h-touch min-w-touch px-4 rounded-full text-xs font-bold uppercase transition-colors ${
-                  lang === code ? 'bg-brand-700 text-white shadow-sm' : 'text-muted hover:text-ink'
-                }`}
-              >
-                {code}
-              </button>
-            ))}
-          </div>
+          <SegmentedPillControl
+            ariaLabel={t('settings.languageLabel')}
+            value={lang}
+            onChange={setLang}
+            tone="brand"
+            className="bg-surface-2"
+            buttonClassName="px-4 uppercase"
+            options={[
+              { value: 'id', label: 'ID' },
+              { value: 'en', label: 'EN' }
+            ]}
+          />
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-line">
