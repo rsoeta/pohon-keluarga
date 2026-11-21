@@ -137,7 +137,7 @@ export function GedcomImportPage() {
           type="button"
           disabled={!content || busy || !isOnline}
           onClick={handlePreview}
-          className="w-full min-h-touch px-4 py-3 rounded-full bg-side text-[var(--on-side)] disabled:opacity-50 text-sm font-bold flex items-center justify-center gap-2 shadow-sm hover:opacity-95"
+          className="w-full min-h-cta px-4 py-2 rounded-full bg-side text-[var(--on-side)] disabled:opacity-50 text-sm font-bold flex items-center justify-center gap-2 shadow-sm hover:opacity-95"
         >
           <SearchCheck className="w-4 h-4" />
           <span>{busy && !preview ? t('gedcom.previewing') : t('gedcom.previewBtn')}</span>
@@ -206,7 +206,7 @@ export function GedcomImportPage() {
             type="button"
             disabled={busy || !isOnline}
             onClick={handleImport}
-            className="w-full min-h-touch px-5 py-3 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white text-sm font-bold flex items-center justify-center gap-2 shadow-sm"
+            className="w-full min-h-cta px-5 py-2 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white text-sm font-bold flex items-center justify-center gap-2 shadow-sm"
           >
             <Play className="w-4 h-4" />
             <span>{busy ? t('gedcom.executing') : t('gedcom.executeBtn')}</span>

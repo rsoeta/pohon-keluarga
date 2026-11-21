@@ -196,7 +196,7 @@ export function SettingsPage() {
           <button
             type="button"
             onClick={toggleTheme}
-            className="min-h-touch px-4 rounded-full border border-line bg-surface-2 text-sm font-bold text-ink flex items-center gap-2 hover:bg-[var(--well)] transition-colors"
+            className="min-h-ctl px-3.5 rounded-full border border-line bg-surface-2 text-xs sm:text-sm font-bold text-ink flex items-center gap-2 hover:bg-[var(--well)] transition-colors"
           >
             {isDark ? <Moon className="w-4 h-4 text-amber-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
             <span>{isDark ? t('theme.dark') : t('theme.light')}</span>
@@ -253,7 +253,7 @@ export function SettingsPage() {
             type="button"
             disabled={syncing || !isOnline}
             onClick={() => handleSync(false)}
-            className="flex-1 min-w-[9rem] min-h-touch px-4 py-2.5 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors shadow-sm"
+            className="flex-1 min-w-[9rem] min-h-cta px-4 py-2 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors shadow-sm"
           >
             <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
             <span>{syncing ? t('sync.syncing') : t('sync.syncNow')}</span>
@@ -263,7 +263,7 @@ export function SettingsPage() {
             type="button"
             disabled={syncing || !isOnline}
             onClick={() => handleSync(true)}
-            className="flex-1 min-w-[9rem] min-h-touch px-4 py-2.5 rounded-full border border-line bg-surface-2 text-ink hover:bg-[var(--well)] disabled:opacity-50 font-bold text-sm transition-colors"
+            className="flex-1 min-w-[9rem] min-h-cta px-4 py-2 rounded-full border border-line bg-surface-2 text-ink hover:bg-[var(--well)] disabled:opacity-50 font-bold text-sm transition-colors"
           >
             {t('sync.fullReload')}
           </button>
@@ -361,7 +361,7 @@ export function SettingsPage() {
           <button
             type="submit"
             disabled={savingPw || !isOnline}
-            className="w-full sm:w-auto min-h-touch px-5 py-2.5 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold text-sm transition-colors shadow-sm"
+            className="w-full sm:w-auto min-h-cta px-5 py-2 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold text-sm transition-colors shadow-sm"
           >
             {savingPw ? t('common.loading') : t('settings.savePasswordBtn')}
           </button>
@@ -372,7 +372,7 @@ export function SettingsPage() {
             type="button"
             onClick={handleLogoutAll}
             disabled={!isOnline}
-            className="flex-1 min-w-[11rem] min-h-touch px-4 py-2.5 rounded-full border border-rose-300/80 dark:border-rose-900/60 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 disabled:opacity-50 font-bold text-sm transition-colors"
+            className="flex-1 min-w-[11rem] min-h-cta px-4 py-2 rounded-full border border-rose-300/80 dark:border-rose-900/60 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 disabled:opacity-50 font-bold text-sm transition-colors"
           >
             {t('settings.logoutAllBtn')}
           </button>
@@ -380,7 +380,7 @@ export function SettingsPage() {
           <button
             type="button"
             onClick={handleLogout}
-            className="flex-1 min-w-[9rem] min-h-touch px-4 py-2.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors shadow-sm"
+            className="flex-1 min-w-[9rem] min-h-cta px-4 py-2 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors shadow-sm"
           >
             <LogOut className="w-4 h-4" />
             <span>{t('settings.logoutBtn')}</span>

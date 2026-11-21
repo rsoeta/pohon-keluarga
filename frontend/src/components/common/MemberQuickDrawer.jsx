@@ -148,7 +148,7 @@ export function MemberQuickDrawer() {
                   onClick={popMemberDrawer}
                   aria-label={t('drawer.backHistory')}
                   title={t('drawer.backHistory')}
-                  className="min-h-touch min-w-touch flex items-center justify-center rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink shrink-0"
+                  className="h-9 w-9 flex items-center justify-center rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink shrink-0"
                 >
                   <ArrowLeft className="w-4 h-4" />
                 </button>
@@ -163,7 +163,7 @@ export function MemberQuickDrawer() {
               type="button"
               onClick={() => closeMemberDrawer()}
               aria-label={t('common.close')}
-              className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-muted hover:bg-[var(--well)] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+              className="h-9 w-9 flex items-center justify-center rounded-full text-muted hover:bg-[var(--well)] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
             >
               <X className="w-5 h-5" />
             </button>
@@ -229,25 +229,25 @@ export function MemberQuickDrawer() {
         {member && (
           <div ref={bodyRef} className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
             {/* Strip Aksi Cepat */}
-            <div className="flex flex-wrap gap-2" aria-label={t('drawer.quickActions')}>
+            <div className="flex flex-wrap gap-1.5" aria-label={t('drawer.quickActions')}>
               <button
                 type="button"
                 onClick={() => {
                   closeMemberDrawer({ restore: false });
                   navigate(`/pohon?focus=${member.id_anggota}`);
                 }}
-                className="flex-1 min-w-[7.5rem] min-h-touch px-3.5 rounded-full bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-sm"
+                className="flex-1 min-w-[7rem] min-h-ctl px-3 rounded-full bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-sm"
               >
-                <GitFork className="w-4 h-4 shrink-0" />
+                <GitFork className="w-3.5 h-3.5 shrink-0" />
                 <span>{t('drawer.focusTreeBtn')}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => openRelationModal(member.id_anggota)}
-                className="min-h-touch px-3.5 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink text-xs font-bold inline-flex items-center justify-center gap-1.5"
+                className="min-h-ctl px-3 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink text-xs font-bold inline-flex items-center justify-center gap-1.5"
               >
-                <GitCompare className="w-4 h-4 text-brand-700 dark:text-brand-300 shrink-0" />
+                <GitCompare className="w-3.5 h-3.5 text-brand-700 dark:text-brand-300 shrink-0" />
                 <span>{t('drawer.relationBtn')}</span>
               </button>
 
@@ -258,9 +258,9 @@ export function MemberQuickDrawer() {
                     closeMemberDrawer({ restore: false });
                     navigate(`/edit/${member.id_anggota}`);
                   }}
-                  className="min-h-touch px-3.5 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink text-xs font-bold inline-flex items-center justify-center gap-1.5"
+                  className="min-h-ctl px-3 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink text-xs font-bold inline-flex items-center justify-center gap-1.5"
                 >
-                  <Edit3 className="w-4 h-4 text-muted shrink-0" />
+                  <Edit3 className="w-3.5 h-3.5 text-muted shrink-0" />
                   <span>{t('drawer.editBtn')}</span>
                 </button>
               )}
@@ -270,9 +270,9 @@ export function MemberQuickDrawer() {
                   href={waUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="min-h-touch px-3.5 rounded-full bg-wa hover:bg-wa-hover text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-sm"
+                  className="min-h-ctl px-3 rounded-full bg-wa hover:bg-wa-hover text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-sm"
                 >
-                  <MessageCircle className="w-4 h-4 shrink-0" />
+                  <MessageCircle className="w-3.5 h-3.5 shrink-0" />
                   <span>WhatsApp</span>
                 </a>
               )}
@@ -459,11 +459,11 @@ export function MemberQuickDrawer() {
 
         {/* Footer Sticky */}
         {member && (
-          <div className="p-4 border-t border-line bg-surface shrink-0 pb-safe">
+          <div className="p-3.5 border-t border-line bg-surface shrink-0 pb-safe">
             <Link
               to={`/profil/${member.id_anggota}`}
               onClick={() => closeMemberDrawer({ restore: false })}
-              className="w-full min-h-touch px-5 rounded-full bg-side text-[var(--on-side)] hover:opacity-95 text-sm font-bold flex items-center justify-center gap-2 shadow-sm"
+              className="w-full min-h-cta px-4 rounded-full bg-side text-[var(--on-side)] hover:opacity-95 text-sm font-bold flex items-center justify-center gap-2 shadow-sm"
             >
               <span>{t('drawer.fullProfileBtn')}</span>
               <ArrowRight className="w-4 h-4" />

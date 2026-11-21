@@ -129,7 +129,7 @@ export function BirthdaysPage() {
                       href={waUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full min-h-touch px-4 rounded-full bg-wa hover:bg-wa-hover text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-colors"
+                      className="w-full min-h-touch px-3.5 rounded-full bg-wa hover:bg-wa-hover text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-colors"
                     >
                       <MessageCircle className="w-4 h-4 shrink-0" />
                       <span>{t('birthdays.sendWa')}</span>
@@ -162,7 +162,7 @@ export function BirthdaysPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t('birthdays.searchPlaceholder')}
-              className="w-full min-h-touch pl-10 pr-11 rounded-full border border-line bg-surface text-sm font-medium text-ink placeholder:text-faint shadow-card focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full min-h-touch pl-10 pr-10 py-2 rounded-full border border-line bg-surface text-sm font-medium text-ink placeholder:text-faint shadow-card focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
             {query && (
               <button

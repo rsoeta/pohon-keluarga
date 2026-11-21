@@ -353,7 +353,7 @@ export function AdminPanelPage() {
           onClick={() => loadTabData(tab)}
           disabled={loading || !isOnline}
           aria-label={t('sync.syncNow')}
-          className="min-h-touch min-w-touch flex items-center justify-center rounded-full bg-surface border border-line text-ink hover:bg-surface-2 disabled:opacity-50 shadow-card"
+          className="h-9 w-9 flex items-center justify-center rounded-full bg-surface border border-line text-ink hover:bg-surface-2 disabled:opacity-50 shadow-card"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
         </button>
@@ -411,7 +411,7 @@ export function AdminPanelPage() {
 
           <Link
             to="/admin/gedcom"
-            className="w-full min-h-touch px-4 py-3 rounded-full bg-heritage-600 hover:bg-heritage-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm"
+            className="w-full min-h-cta px-4 py-2 rounded-full bg-heritage-700 hover:bg-heritage-800 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm"
           >
             <FileUp className="w-4 h-4" />
             <span>{t('admin.quickGedcom')}</span>

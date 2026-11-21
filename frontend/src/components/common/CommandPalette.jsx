@@ -356,7 +356,7 @@ export function CommandPalette() {
                 inputRef.current?.focus();
               }}
               aria-label={t('directory.clearSearch')}
-              className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-muted hover:bg-[var(--well)]"
+              className="h-9 w-9 flex items-center justify-center rounded-full text-muted hover:bg-[var(--well)]"
             >
               <X className="w-4 h-4" />
             </button>
@@ -365,7 +365,7 @@ export function CommandPalette() {
             type="button"
             onClick={() => closeCommandPalette()}
             aria-label={t('common.close')}
-            className="min-h-touch px-3 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-xs font-bold text-muted"
+            className="min-h-ctl px-2.5 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-xs font-bold text-muted"
           >
             Esc
           </button>
@@ -436,7 +436,7 @@ export function CommandPalette() {
                           }}
                           title={t('command.focusTreeHint')}
                           aria-label={`${t('command.focusTreeHint')}: ${m.nama_lengkap}`}
-                          className="min-h-touch min-w-touch px-2.5 rounded-full bg-surface border border-line text-brand-700 dark:text-brand-300 hover:bg-brand-50 dark:hover:bg-brand-950/60 flex items-center justify-center gap-1 text-xs font-bold shrink-0"
+                          className="h-8 w-8 rounded-full bg-surface border border-line text-brand-700 dark:text-brand-300 hover:bg-brand-50 dark:hover:bg-brand-950/60 flex items-center justify-center text-xs font-bold shrink-0"
                         >
                           <GitFork className="w-3.5 h-3.5" />
                         </button>

@@ -405,7 +405,7 @@ export function MemberFormPage() {
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="min-h-touch px-4 rounded-full bg-surface border border-line text-sm font-bold text-ink inline-flex items-center gap-2 shadow-card hover:bg-surface-2"
+          className="min-h-ctl px-3.5 rounded-full bg-surface border border-line text-xs sm:text-sm font-bold text-ink inline-flex items-center gap-1.5 shadow-card hover:bg-surface-2"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>{t('common.back')}</span>
@@ -762,9 +762,9 @@ export function MemberFormPage() {
         <button
           type="submit"
           disabled={saving || !isOnline}
-          className="w-full min-h-touch px-5 py-3 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold text-base flex items-center justify-center gap-2 shadow-sm"
+          className="w-full min-h-cta px-5 py-2 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-sm"
         >
-          <Save className="w-5 h-5" />
+          <Save className="w-4 h-4" />
           <span>{saving ? t('common.saving') : t('common.save')}</span>
         </button>
       </form>
@@ -822,7 +822,7 @@ export function MemberFormPage() {
           type="button"
           onClick={handleDeleteMember}
           disabled={!isOnline}
-          className="w-full min-h-touch px-4 py-3 rounded-full border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-bold text-sm flex items-center justify-center gap-2"
+          className="w-full min-h-cta px-4 py-2 rounded-full border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-bold text-sm flex items-center justify-center gap-2"
         >
           <Trash2 className="w-4 h-4" />
           <span>{t('profile.deleteBtn')}</span>

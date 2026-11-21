@@ -241,10 +241,10 @@ export function TreePage() {
         <p className="text-sm font-medium text-muted max-w-md mx-auto">
           {t('tree.emptyDesc')}
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+        <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
           <Link
             to="/tambah"
-            className="min-h-touch px-5 py-2.5 rounded-full bg-brand-700 hover:bg-brand-800 text-white font-bold text-sm inline-flex items-center gap-2 shadow-sm"
+            className="min-h-cta px-4 py-2 rounded-full bg-brand-700 hover:bg-brand-800 text-white font-bold text-sm inline-flex items-center gap-2 shadow-sm"
           >
             <UserPlus className="w-4 h-4" />
             <span>{t('tree.addMember')}</span>
@@ -253,7 +253,7 @@ export function TreePage() {
             type="button"
             disabled={syncing || !isOnline}
             onClick={() => triggerSync({ forceFull: true })}
-            className="min-h-touch px-5 py-2.5 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink font-bold text-sm inline-flex items-center gap-2 disabled:opacity-50"
+            className="min-h-touch px-4 py-2 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink font-bold text-sm inline-flex items-center gap-2 disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
             <span>{t('sync.syncNow')}</span>
@@ -296,9 +296,9 @@ export function TreePage() {
               onClick={() =>
                 setFocus(layout.parentsOfFocus.ayah?.id_anggota || layout.parentsOfFocus.ibu?.id_anggota)
               }
-              className="min-h-touch px-3.5 rounded-full bg-surface border border-line text-xs font-bold text-ink shadow-card flex items-center gap-1.5 hover:bg-[var(--well)]"
+              className="min-h-ctl px-3 rounded-full bg-surface border border-line text-xs font-bold text-ink shadow-card flex items-center gap-1.5 hover:bg-[var(--well)]"
             >
-              <ArrowUp className="w-4 h-4 text-brand-700 dark:text-brand-300" />
+              <ArrowUp className="w-3.5 h-3.5 text-brand-700 dark:text-brand-300" />
               <span>{t('tree.upToParent')}</span>
             </button>
           )}
@@ -307,9 +307,9 @@ export function TreePage() {
             <button
               type="button"
               onClick={() => setFocus(user.id_anggota)}
-              className="min-h-touch px-3.5 rounded-full bg-surface border border-line text-xs font-bold text-brand-700 dark:text-brand-300 shadow-card flex items-center gap-1.5 hover:bg-brand-50 dark:hover:bg-brand-950/60"
+              className="min-h-ctl px-3 rounded-full bg-surface border border-line text-xs font-bold text-brand-700 dark:text-brand-300 shadow-card flex items-center gap-1.5 hover:bg-brand-50 dark:hover:bg-brand-950/60"
             >
-              <Compass className="w-4 h-4" />
+              <Compass className="w-3.5 h-3.5" />
               <span>{t('tree.myProfile')}</span>
             </button>
           )}
@@ -324,7 +324,7 @@ export function TreePage() {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         onWheel={handleWheel}
-        className="relative w-full h-[calc(100dvh-15.5rem)] min-h-[24rem] rounded-card border border-line bg-surface shadow-card overflow-hidden touch-none select-none cursor-grab active:cursor-grabbing"
+        className="relative w-full h-[calc(100dvh-13.75rem)] min-h-[24rem] rounded-card border border-line bg-surface shadow-card overflow-hidden touch-none select-none cursor-grab active:cursor-grabbing"
         style={{
           backgroundImage:
             'radial-gradient(circle, rgba(13,92,85,0.16) 1px, transparent 1px)',
@@ -430,7 +430,7 @@ export function TreePage() {
                     <p className="text-xs font-bold text-ink truncate leading-snug">
                       {p.nama_lengkap}
                     </p>
-                    <p className="text-[0.65rem] font-semibold text-muted truncate">
+                    <p className="text-[0.6875rem] font-semibold text-muted truncate">
                       {formatKodeUnik(p.kode_unik)}
                       {birthYear ? ` · ${birthYear}` : ''}
                     </p>
@@ -518,27 +518,27 @@ export function TreePage() {
             onClick={handleExportPdf}
             disabled={exporting}
             aria-label={t('tree.exportPdf')}
-            className="min-h-touch px-4 rounded-full bg-brand-700 hover:bg-brand-800 active:scale-95 text-white shadow-float flex items-center gap-2 text-xs font-bold transition-all"
+            className="min-h-touch px-3.5 rounded-full bg-brand-700 hover:bg-brand-800 active:scale-95 text-white shadow-float flex items-center gap-1.5 text-xs font-bold transition-all"
           >
             <FileDown className="w-4 h-4 shrink-0" />
             <span>{t('tree.exportPdf')}</span>
           </button>
 
-          <div className="inline-flex items-center rounded-full bg-surface/95 backdrop-blur-md border border-line shadow-card p-1">
+          <div className="inline-flex items-center rounded-full bg-surface/95 backdrop-blur-md border border-line shadow-card p-0.5">
             <button
               type="button"
               onClick={() => zoomBy(-0.15)}
               aria-label={t('tree.zoomOut')}
-              className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-ink hover:bg-[var(--well)]"
+              className="min-h-ctl min-w-ctl flex items-center justify-center rounded-full text-ink hover:bg-[var(--well)]"
             >
-              <Minus className="w-4 h-4" />
+              <Minus className="w-3.5 h-3.5" />
             </button>
 
             <button
               type="button"
               onClick={fitView}
               title={t('tree.resetView')}
-              className="min-h-touch px-2.5 text-xs font-bold text-ink hover:bg-[var(--well)] rounded-full tabular-nums"
+              className="min-h-ctl px-2 text-xs font-bold text-ink hover:bg-[var(--well)] rounded-full tabular-nums"
             >
               {Math.round(scale * 100)}%
             </button>
@@ -547,9 +547,9 @@ export function TreePage() {
               type="button"
               onClick={() => zoomBy(0.15)}
               aria-label={t('tree.zoomIn')}
-              className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-ink hover:bg-[var(--well)]"
+              className="min-h-ctl min-w-ctl flex items-center justify-center rounded-full text-ink hover:bg-[var(--well)]"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

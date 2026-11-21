@@ -96,7 +96,7 @@ export function RelationshipModal({ isOpen, onClose, targetId = '', initialFromI
             type="button"
             onClick={onClose}
             aria-label={t('common.close')}
-            className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-muted hover:bg-[var(--well)]"
+            className="h-9 w-9 flex items-center justify-center rounded-full text-muted hover:bg-[var(--well)]"
           >
             <X className="w-5 h-5" />
           </button>

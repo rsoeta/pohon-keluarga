@@ -58,22 +58,22 @@ export function TopHeader() {
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-line bg-surface/85 backdrop-blur-md">
-      <div className="w-full max-w-5xl mx-auto px-3 sm:px-6 py-2 flex items-center justify-between gap-2 sm:gap-3">
+      <div className="w-full max-w-5xl mx-auto px-3 sm:px-6 py-1.5 flex items-center justify-between gap-2 sm:gap-3">
         {/* Kiri: Brand Organic Pine */}
         <Link
           to="/pohon"
-          className="min-h-touch flex items-center gap-2.5 pr-1 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 min-w-0 shrink-0"
+          className="h-9 flex items-center gap-2 pr-1 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 min-w-0 shrink-0"
         >
-          <span className="w-10 h-10 shrink-0 rounded-2xl bg-side text-[#c4ecd9] flex items-center justify-center shadow-sm border border-white/10">
-            <TreePine className="w-5 h-5" aria-hidden="true" />
+          <span className="w-9 h-9 shrink-0 rounded-xl bg-side text-[#c4ecd9] flex items-center justify-center shadow-sm border border-white/10">
+            <TreePine className="w-[1.125rem] h-[1.125rem]" aria-hidden="true" />
           </span>
           <div className="min-w-0">
-            <p className="text-sm sm:text-base font-bold text-ink leading-tight truncate max-w-[9.5rem] sm:max-w-[13rem]">
+            <p className="text-sm sm:text-[0.95rem] font-bold text-ink leading-tight truncate max-w-[9.5rem] sm:max-w-[13rem]">
               {familyName}
             </p>
-            <div className="flex items-center gap-1.5 text-[0.7rem] font-semibold text-muted">
+            <div className="flex items-center gap-1.5 text-[0.6875rem] font-semibold text-muted">
               <span
-                className={`inline-block w-2 h-2 rounded-full ${
+                className={`inline-block w-1.5 h-1.5 rounded-full ${
                   isOnline ? 'bg-emerald-500' : 'bg-amber-500'
                 }`}
               />
@@ -87,7 +87,7 @@ export function TopHeader() {
           type="button"
           onClick={openCommandPalette}
           aria-label={t('command.dialogLabel')}
-          className="hidden md:flex flex-1 max-w-md min-h-touch items-center justify-between gap-2 px-4 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          className="hidden md:flex flex-1 max-w-md h-9 items-center justify-between gap-2 px-3.5 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
         >
           <span className="flex items-center gap-2 min-w-0">
             <Search className="w-4 h-4 text-faint shrink-0" aria-hidden="true" />
@@ -105,7 +105,7 @@ export function TopHeader() {
             onClick={openCommandPalette}
             aria-label={t('command.triggerShort')}
             title={`${t('command.triggerShort')} (⌘K)`}
-            className="md:hidden min-h-touch min-w-touch flex items-center justify-center rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink transition-colors"
+            className="md:hidden h-9 w-9 flex items-center justify-center rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink transition-colors"
           >
             <Search className="w-4 h-4" />
           </button>
@@ -116,10 +116,10 @@ export function TopHeader() {
             disabled={syncing || !isOnline}
             aria-label={t('sync.syncNow')}
             title={t('sync.syncNow')}
-            className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-[var(--well)] disabled:opacity-50 transition-colors"
+            className="h-9 w-9 flex items-center justify-center rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink disabled:opacity-50 transition-colors"
           >
             <RefreshCw
-              className={`w-5 h-5 ${syncing ? 'animate-spin text-brand-700 dark:text-brand-300' : ''}`}
+              className={`w-4 h-4 ${syncing ? 'animate-spin text-brand-700 dark:text-brand-300' : ''}`}
             />
           </button>
 
@@ -128,25 +128,25 @@ export function TopHeader() {
             onClick={toggleTheme}
             aria-label={isDark ? t('theme.switchToLight') : t('theme.switchToDark')}
             title={isDark ? t('theme.switchToLight') : t('theme.switchToDark')}
-            className="min-h-touch min-w-touch flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-[var(--well)] transition-colors"
+            className="h-9 w-9 flex items-center justify-center rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink transition-colors"
           >
-            {isDark ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5" />}
+            {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
           </button>
 
           <Link
             to="/setelan"
             aria-label={t('nav.settings')}
             title={displayName}
-            className="min-h-touch min-w-touch flex items-center justify-center rounded-full hover:bg-[var(--well)] transition-colors"
+            className="h-9 w-9 flex items-center justify-center rounded-full hover:bg-[var(--well)] transition-colors"
           >
             {avatarUrl ? (
               <img
                 src={avatarUrl}
                 alt={displayName}
-                className="w-9 h-9 rounded-full object-cover ring-2 ring-brand-500/40"
+                className="w-8 h-8 rounded-full object-cover ring-2 ring-brand-500/40"
               />
             ) : (
-              <span className="w-9 h-9 rounded-full bg-brand-100 dark:bg-brand-900/60 text-brand-800 dark:text-brand-200 text-xs font-bold flex items-center justify-center ring-2 ring-brand-500/30">
+              <span className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/60 text-brand-800 dark:text-brand-200 text-[0.7rem] font-bold flex items-center justify-center ring-2 ring-brand-500/30">
                 {getInitials(displayName)}
               </span>
             )}

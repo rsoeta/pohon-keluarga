@@ -147,36 +147,36 @@ export function ProfileDetailPage() {
         <button
           type="button"
           onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/daftar'))}
-          className="min-h-touch px-4 rounded-full bg-surface border border-line text-sm font-bold text-ink inline-flex items-center gap-2 shadow-card hover:bg-surface-2"
+          className="min-h-ctl px-3.5 rounded-full bg-surface border border-line text-xs sm:text-sm font-bold text-ink inline-flex items-center gap-1.5 shadow-card hover:bg-surface-2"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>{t('common.back')}</span>
         </button>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
           <button
             type="button"
             onClick={() => openRelationModal(member.id_anggota)}
-            className="min-h-touch px-3.5 rounded-full bg-heritage-50 dark:bg-heritage-950/40 border border-heritage-200 dark:border-heritage-800 text-heritage-800 dark:text-heritage-200 text-xs font-bold inline-flex items-center gap-1.5"
+            className="min-h-ctl px-3 rounded-full bg-heritage-50 dark:bg-heritage-950/40 border border-heritage-200 dark:border-heritage-800 text-heritage-800 dark:text-heritage-200 text-xs font-bold inline-flex items-center gap-1.5"
           >
-            <GitCompare className="w-4 h-4" />
+            <GitCompare className="w-3.5 h-3.5" />
             <span>{t('directory.btnRelation')}</span>
           </button>
 
           <Link
             to={`/pohon?focus=${member.id_anggota}`}
-            className="min-h-touch px-4 rounded-full bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm"
+            className="min-h-ctl px-3.5 rounded-full bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm"
           >
-            <GitFork className="w-4 h-4" />
+            <GitFork className="w-3.5 h-3.5" />
             <span>{t('directory.btnTree')}</span>
           </Link>
 
           {canEdit && (
             <Link
               to={`/edit/${member.id_anggota}`}
-              className="min-h-touch px-4 rounded-full bg-side text-[var(--on-side)] hover:opacity-95 text-xs font-bold inline-flex items-center gap-1.5 shadow-sm"
+              className="min-h-ctl px-3.5 rounded-full bg-side text-[var(--on-side)] hover:opacity-95 text-xs font-bold inline-flex items-center gap-1.5 shadow-sm"
             >
-              <Edit3 className="w-4 h-4" />
+              <Edit3 className="w-3.5 h-3.5" />
               <span>{t('profile.editBtn')}</span>
             </Link>
           )}
@@ -204,7 +204,7 @@ export function ProfileDetailPage() {
                 type="button"
                 onClick={() => handleCopy(formatKodeUnik(member.kode_unik))}
                 title={t('profile.copyCode')}
-                className="min-h-touch px-3.5 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink text-xs font-bold inline-flex items-center gap-1.5 font-mono"
+                className="min-h-ctl px-3 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink text-xs font-bold inline-flex items-center gap-1.5 font-mono"
               >
                 <span>{formatKodeUnik(member.kode_unik)}</span>
                 <Copy className="w-3.5 h-3.5 text-muted" />
@@ -272,12 +272,12 @@ export function ProfileDetailPage() {
           </div>
 
           {waUrl && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => handleCopy(`+${member.no_wa}`)}
                 aria-label={t('common.copySuccess')}
-                className="min-h-touch min-w-touch flex items-center justify-center rounded-full bg-surface-2 border border-line text-ink hover:bg-[var(--well)]"
+                className="h-9 w-9 flex items-center justify-center rounded-full bg-surface-2 border border-line text-ink hover:bg-[var(--well)]"
               >
                 <Copy className="w-4 h-4" />
               </button>
@@ -285,9 +285,9 @@ export function ProfileDetailPage() {
                 href={waUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="min-h-touch px-4 rounded-full bg-wa hover:bg-wa-hover text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-colors"
+                className="min-h-ctl px-3.5 rounded-full bg-wa hover:bg-wa-hover text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-colors"
               >
-                <MessageCircle className="w-4 h-4" />
+                <MessageCircle className="w-3.5 h-3.5" />
                 <span>{t('profile.chatWa')}</span>
               </a>
             </div>
@@ -346,9 +346,9 @@ export function ProfileDetailPage() {
           {canEdit && (user?.id_anggota === member.id_anggota || user?.role === 'Admin') && (
             <Link
               to={`/tambah?mode=pasangan&target=${member.id_anggota}`}
-              className="min-h-touch px-3.5 rounded-full bg-brand-100/80 dark:bg-brand-950/50 text-brand-800 dark:text-brand-200 text-xs font-bold inline-flex items-center gap-1 hover:bg-brand-100"
+              className="min-h-ctl px-3 rounded-full bg-brand-100/80 dark:bg-brand-950/50 text-brand-800 dark:text-brand-200 text-xs font-bold inline-flex items-center gap-1 hover:bg-brand-100"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
               <span>{t('profile.addSpouse')}</span>
             </Link>
           )}
@@ -398,9 +398,9 @@ export function ProfileDetailPage() {
           {canEdit && (user?.id_anggota === member.id_anggota || user?.role === 'Admin') && (
             <Link
               to={`/tambah?mode=anak&target=${member.id_anggota}`}
-              className="min-h-touch px-3.5 rounded-full bg-brand-100/80 dark:bg-brand-950/50 text-brand-800 dark:text-brand-200 text-xs font-bold inline-flex items-center gap-1 hover:bg-brand-100"
+              className="min-h-ctl px-3 rounded-full bg-brand-100/80 dark:bg-brand-950/50 text-brand-800 dark:text-brand-200 text-xs font-bold inline-flex items-center gap-1 hover:bg-brand-100"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
               <span>{t('profile.addChild')}</span>
             </Link>
           )}
@@ -449,7 +449,7 @@ export function ProfileDetailPage() {
             type="button"
             disabled={deleting || !isOnline}
             onClick={handleDelete}
-            className="w-full min-h-touch px-4 py-3 rounded-full bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm"
+            className="w-full min-h-cta px-4 py-2 rounded-full bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm"
           >
             <Trash2 className="w-4 h-4" />
             <span>{t('profile.deleteBtn')}</span>

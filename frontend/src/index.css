@@ -4,16 +4,21 @@
 
 :root {
   --bg: #eef2ef;
+  --bg-rgb: 238 242 239;
   --glow-a: rgba(215, 239, 228, 0.85);
   --glow-b: rgba(230, 238, 246, 0.85);
   --surface: #fbfcfb;
+  --surface-rgb: 251 252 251;
   --surface-2: #f4f7f5;
+  --surface-2-rgb: 244 247 245;
   --raised: #ffffff;
+  --raised-rgb: 255 255 255;
   --well: rgba(16, 35, 31, 0.06);
 
   --side: #0f2d29;
+  --side-rgb: 15 45 41;
   --on-side: #dcebe7;
-  --side-dim: rgba(220, 235, 231, 0.72);
+  --side-dim: rgba(220, 235, 231, 0.84);
   --side-pill: #c4ecd9;
   --on-side-pill: #0b2925;
 
@@ -22,11 +27,16 @@
   --on-primary: #f1fbf7;
 
   --wa: #15803d;
+  --wa-rgb: 21 128 61;
   --wa-hover: #166534;
+  --wa-hover-rgb: 22 101 52;
 
   --text: #10231f;
+  --text-rgb: 16 35 31;
   --muted: #4b5e59;
+  --muted-rgb: 75 94 89;
   --faint: #5e706b;
+  --faint-rgb: 94 112 107;
 
   --line: rgba(16, 35, 31, 0.1);
   --line-2: rgba(16, 35, 31, 0.18);
@@ -39,16 +49,21 @@
 
 .dark {
   --bg: #0b1312;
+  --bg-rgb: 11 19 18;
   --glow-a: rgba(19, 138, 126, 0.16);
   --glow-b: rgba(76, 148, 220, 0.09);
   --surface: #121d1c;
+  --surface-rgb: 18 29 28;
   --surface-2: #172423;
+  --surface-2-rgb: 23 36 35;
   --raised: #1b2a28;
+  --raised-rgb: 27 42 40;
   --well: rgba(229, 239, 236, 0.08);
 
   --side: #0e1918;
+  --side-rgb: 14 25 24;
   --on-side: #dcebe7;
-  --side-dim: rgba(220, 235, 231, 0.68);
+  --side-dim: rgba(220, 235, 231, 0.78);
   --side-pill: #5cd0b4;
   --on-side-pill: #06201c;
 
@@ -57,11 +72,16 @@
   --on-primary: #06201c;
 
   --wa: #15803d;
+  --wa-rgb: 21 128 61;
   --wa-hover: #166534;
+  --wa-hover-rgb: 22 101 52;
 
   --text: #e5efec;
+  --text-rgb: 229 239 236;
   --muted: #9db0aa;
+  --muted-rgb: 157 176 170;
   --faint: #849993;
+  --faint-rgb: 132 153 147;
 
   --line: rgba(229, 239, 236, 0.1);
   --line-2: rgba(229, 239, 236, 0.18);
@@ -75,6 +95,12 @@
     font-size: 16px;
     overflow-x: hidden;
     scroll-behavior: smooth;
+  }
+
+  @media (max-width: 639px) {
+    html {
+      font-size: 15px;
+    }
   }
 
   body {
@@ -193,37 +219,37 @@
   }
 }
 
-/* Penyesuaian SweetAlert2: font Quicksand, palet organic pine/teal, target sentuh >= 48px */
+/* Penyesuaian SweetAlert2: font Quicksand, palet organic pine/teal, ukuran tombol compact */
 .swal2-popup.nasab-swal-popup {
   font-family: 'Quicksand', ui-sans-serif, system-ui, sans-serif;
   border-radius: 1.375rem;
   border: 1px solid var(--line);
   box-shadow: var(--shadow-float);
-  padding: 1.5rem;
-  max-width: min(92vw, 26rem);
+  padding: 1.35rem;
+  max-width: min(92vw, 25rem);
 }
 
 .swal2-title.nasab-swal-title {
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1.1rem;
 }
 
 .swal2-html-container.nasab-swal-text {
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   line-height: 1.5;
 }
 
 .swal2-confirm.nasab-swal-confirm,
 .swal2-cancel.nasab-swal-cancel,
 .swal2-deny.nasab-swal-deny {
-  min-height: 3rem;
-  min-width: 5.5rem;
-  padding: 0.65rem 1.35rem;
+  min-height: 2.5rem;
+  min-width: 5rem;
+  padding: 0.5rem 1.15rem;
   border-radius: 9999px;
   font-family: 'Quicksand', ui-sans-serif, system-ui, sans-serif;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.875rem;
 }
 
 .swal2-popup.swal2-toast.nasab-swal-toast {

@@ -76,9 +76,9 @@ export function LoginPage() {
           type="button"
           onClick={toggleTheme}
           aria-label={isDark ? t('theme.switchToLight') : t('theme.switchToDark')}
-          className="min-h-touch min-w-touch flex items-center justify-center rounded-full bg-surface border border-line text-ink shadow-card hover:bg-[var(--well)] transition-colors"
+          className="h-9 w-9 flex items-center justify-center rounded-full bg-surface border border-line text-ink shadow-card hover:bg-[var(--well)] transition-colors"
         >
-          {isDark ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5" />}
+          {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
         </button>
       </div>
 
@@ -165,9 +165,9 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full min-h-touch px-5 py-3 rounded-full bg-brand-700 hover:bg-brand-800 active:scale-[0.99] disabled:opacity-60 text-white font-bold text-base shadow-sm flex items-center justify-center gap-2 transition-all"
+              className="w-full min-h-cta px-5 py-2 rounded-full bg-brand-700 hover:bg-brand-800 active:scale-[0.99] disabled:opacity-60 text-white font-bold text-sm sm:text-base shadow-sm flex items-center justify-center gap-2 transition-all"
             >
-              <LogIn className="w-5 h-5" aria-hidden="true" />
+              <LogIn className="w-4 h-4" aria-hidden="true" />
               <span>{submitting ? t('auth.loggingIn') : t('auth.loginButton')}</span>
             </button>
           </form>
@@ -176,7 +176,7 @@ export function LoginPage() {
             <button
               type="button"
               onClick={promptInstall}
-              className="mt-4 w-full min-h-touch px-4 py-2.5 rounded-full border border-brand-200 dark:border-brand-800 bg-brand-50 dark:bg-brand-950/40 text-brand-800 dark:text-brand-200 font-bold text-sm flex items-center justify-center gap-2 hover:bg-brand-100 dark:hover:bg-brand-900/50 transition-colors"
+              className="mt-3.5 w-full min-h-touch px-4 py-2 rounded-full border border-brand-200 dark:border-brand-800 bg-brand-50 dark:bg-brand-950/40 text-brand-800 dark:text-brand-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 hover:bg-brand-100 dark:hover:bg-brand-900/50 transition-colors"
             >
               <Download className="w-4 h-4 shrink-0" aria-hidden="true" />
               <span>{t('pwa.installBtn')}</span>

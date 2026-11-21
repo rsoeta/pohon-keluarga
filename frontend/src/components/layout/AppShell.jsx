@@ -37,7 +37,7 @@ function AppShellInner() {
       <main
         id="main-content"
         tabIndex={-1}
-        className="flex-1 w-full max-w-5xl mx-auto px-3 sm:px-6 pt-4 pb-28 focus:outline-none"
+        className="flex-1 w-full max-w-5xl mx-auto px-3 sm:px-6 pt-3.5 pb-24 focus:outline-none"
       >
         <Outlet />
       </main>

@@ -34,17 +34,17 @@ export default {
           900: '#78350f',
           950: '#451a03'
         },
-        canvas: 'var(--bg)',
-        surface: 'var(--surface)',
-        'surface-2': 'var(--surface-2)',
-        raised: 'var(--raised)',
-        side: 'var(--side)',
-        ink: 'var(--text)',
-        muted: 'var(--muted)',
-        faint: 'var(--faint)',
+        canvas: 'rgb(var(--bg-rgb) / <alpha-value>)',
+        surface: 'rgb(var(--surface-rgb) / <alpha-value>)',
+        'surface-2': 'rgb(var(--surface-2-rgb) / <alpha-value>)',
+        raised: 'rgb(var(--raised-rgb) / <alpha-value>)',
+        side: 'rgb(var(--side-rgb) / <alpha-value>)',
+        ink: 'rgb(var(--text-rgb) / <alpha-value>)',
+        muted: 'rgb(var(--muted-rgb) / <alpha-value>)',
+        faint: 'rgb(var(--faint-rgb) / <alpha-value>)',
         line: 'var(--line)',
-        wa: 'var(--wa)',
-        'wa-hover': 'var(--wa-hover)'
+        wa: 'rgb(var(--wa-rgb) / <alpha-value>)',
+        'wa-hover': 'rgb(var(--wa-hover-rgb) / <alpha-value>)'
       },
       boxShadow: {
         card: 'var(--shadow-card)',
@@ -55,10 +55,13 @@ export default {
         tile: '1rem'
       },
       minHeight: {
-        touch: '3rem'
+        ctl: '2.125rem',
+        touch: '2.375rem',
+        cta: '2.625rem'
       },
       minWidth: {
-        touch: '3rem'
+        ctl: '2.125rem',
+        touch: '2.375rem'
       }
     }
   },

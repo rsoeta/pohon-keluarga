@@ -106,10 +106,10 @@ export function BottomNav() {
   };
 
   const navItemClass = ({ isActive }) =>
-    `relative z-10 flex-1 min-h-touch min-w-touch flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 rounded-2xl text-[0.7rem] font-bold transition-colors duration-200 ${
+    `relative z-10 flex-1 min-h-[2.75rem] min-w-[2.75rem] flex flex-col items-center justify-center gap-0.5 py-1 px-1 rounded-[16px] text-[0.7rem] leading-tight font-bold transition-colors duration-200 ${
       isActive
         ? 'text-[var(--on-side-pill)]'
-        : 'text-[var(--side-dim)] hover:text-[var(--on-side)] hover:bg-white/5'
+        : 'text-[var(--side-dim)] hover:text-[var(--on-side)] hover:bg-white/10'
     }`;
 
   return (
@@ -119,12 +119,12 @@ export function BottomNav() {
     >
       <div
         ref={dockRef}
-        className="relative pointer-events-auto mx-auto w-full max-w-md sm:max-w-lg rounded-[26px] bg-side/95 backdrop-blur-md text-[var(--on-side)] shadow-float border border-white/10 px-2 py-1.5 flex items-center justify-between gap-1"
+        className="relative pointer-events-auto mx-auto w-full max-w-[23rem] sm:max-w-[25rem] rounded-[22px] bg-side/95 backdrop-blur-md text-[var(--on-side)] shadow-float border border-white/15 dark:border-white/10 px-1.5 py-1 flex items-center justify-between gap-1"
       >
         {/* Indikator Pill Mint Bergeser Halus */}
         <span
           aria-hidden="true"
-          className={`pointer-events-none absolute left-0 top-0 z-0 rounded-2xl bg-[var(--side-pill)] shadow-sm ${
+          className={`pointer-events-none absolute left-0 top-0 z-0 rounded-[16px] bg-[var(--side-pill)] shadow-sm ${
             indicator.animate ? 'sliding-pill-indicator' : ''
           }`}
           style={{
@@ -136,12 +136,12 @@ export function BottomNav() {
         />
 
         <NavLink ref={setTabRef('/pohon')} to="/pohon" className={navItemClass}>
-          <GitFork className="w-5 h-5 shrink-0" aria-hidden="true" />
+          <GitFork className="w-[1.125rem] h-[1.125rem] shrink-0" aria-hidden="true" />
           <span className="truncate max-w-full">{t('nav.tree')}</span>
         </NavLink>
 
         <NavLink ref={setTabRef('/daftar')} to="/daftar" className={navItemClass}>
-          <Users className="w-5 h-5 shrink-0" aria-hidden="true" />
+          <Users className="w-[1.125rem] h-[1.125rem] shrink-0" aria-hidden="true" />
           <span className="truncate max-w-full">{t('nav.list')}</span>
         </NavLink>
 
@@ -151,23 +151,23 @@ export function BottomNav() {
           aria-label={t('nav.add')}
           title={t('nav.add')}
           className={({ isActive }) =>
-            `relative z-10 shrink-0 min-h-touch min-w-[3.25rem] px-3 flex items-center justify-center rounded-2xl active:scale-95 transition-all duration-200 ${
+            `relative z-10 shrink-0 min-h-[2.75rem] min-w-[2.85rem] px-2.5 flex items-center justify-center rounded-[16px] active:scale-95 transition-all duration-200 ${
               isActive
                 ? 'text-[var(--on-side-pill)]'
-                : 'bg-white/10 text-[#c4ecd9] border border-[#c4ecd9]/25 hover:bg-white/20'
+                : 'bg-white/15 text-[#d7efe4] border border-[#c4ecd9]/35 hover:bg-white/25'
             }`
           }
         >
-          <Plus className="w-6 h-6" strokeWidth={2.5} aria-hidden="true" />
+          <Plus className="w-5 h-5" strokeWidth={2.5} aria-hidden="true" />
         </NavLink>
 
         <NavLink ref={setTabRef('/ultah')} to="/ultah" className={navItemClass}>
           <span className="relative inline-flex">
-            <Cake className="w-5 h-5 shrink-0" aria-hidden="true" />
+            <Cake className="w-[1.125rem] h-[1.125rem] shrink-0" aria-hidden="true" />
             {birthdayCount > 0 && (
               <span
                 aria-label={`${birthdayCount}`}
-                className="absolute -top-1.5 -right-2.5 min-w-[1.15rem] h-[1.15rem] px-1 rounded-full bg-rose-600 text-white text-[0.65rem] font-bold flex items-center justify-center leading-none shadow-sm ring-2 ring-side"
+                className="absolute -top-1.5 -right-2.5 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full bg-rose-600 text-white text-[0.625rem] font-bold flex items-center justify-center leading-none shadow-sm ring-2 ring-side"
               >
                 {birthdayCount > 99 ? '99+' : birthdayCount}
               </span>
@@ -177,7 +177,7 @@ export function BottomNav() {
         </NavLink>
 
         <NavLink ref={setTabRef('/setelan')} to="/setelan" className={navItemClass}>
-          <Settings className="w-5 h-5 shrink-0" aria-hidden="true" />
+          <Settings className="w-[1.125rem] h-[1.125rem] shrink-0" aria-hidden="true" />
           <span className="truncate max-w-full">{t('nav.settings')}</span>
         </NavLink>
       </div>

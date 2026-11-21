@@ -121,7 +121,7 @@ export function SegmentedPillControl({
       aria-label={ariaLabel}
       className={`relative ${
         fullWidth ? 'flex w-full' : 'inline-flex'
-      } flex-wrap items-center gap-1 rounded-[24px] bg-surface border border-line p-1 shadow-card ${className}`}
+      } flex-wrap items-center gap-0.5 rounded-[20px] bg-surface border border-line p-0.5 shadow-card ${className}`}
     >
       <span
         aria-hidden="true"
@@ -161,13 +161,13 @@ export function SegmentedPillControl({
             }}
             className={`relative z-10 ${
               fullWidth ? 'flex-1' : ''
-            } min-h-touch px-3.5 rounded-full text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors duration-200 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+            } min-h-ctl px-3 py-1 rounded-full text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors duration-200 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
               isActive
                 ? activeText
-                : 'text-ink hover:bg-[var(--well)] disabled:hover:bg-transparent'
+                : 'text-ink/85 hover:text-ink hover:bg-[var(--well)] disabled:hover:bg-transparent'
             } ${buttonClassName}`}
           >
-            {Icon && <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />}
+            {Icon && <Icon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />}
             <span className="truncate">{opt.label}</span>
           </button>
         );

@@ -66,13 +66,13 @@ export function DirectoryPage() {
 
       {/* Kolom Cari */}
       <div className="relative flex items-center">
-        <Search className="w-5 h-5 text-faint absolute left-4 pointer-events-none" />
+        <Search className="w-4 h-4 text-faint absolute left-4 pointer-events-none" />
         <input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t('directory.searchPlaceholder')}
-          className="w-full min-h-touch pl-11 pr-12 py-2.5 rounded-full border border-line bg-surface text-sm font-medium text-ink placeholder:text-faint shadow-card focus:outline-none focus:ring-2 focus:ring-brand-500"
+          className="w-full min-h-touch pl-10 pr-11 py-2 rounded-full border border-line bg-surface text-sm font-medium text-ink placeholder:text-faint shadow-card focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
         {query && (
           <button
@@ -81,7 +81,7 @@ export function DirectoryPage() {
             aria-label={t('directory.clearSearch')}
             className="absolute right-0 min-h-touch min-w-touch flex items-center justify-center text-muted hover:text-ink rounded-full"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         )}
       </div>
@@ -187,31 +187,31 @@ export function DirectoryPage() {
                   </div>
                 </div>
 
-                {/* 3 Aksi Cepat >= 48px */}
-                <div className="flex flex-wrap gap-2 pt-2 border-t border-line">
+                {/* 3 Aksi Cepat Compact */}
+                <div className="flex flex-wrap gap-1.5 pt-2 border-t border-line">
                   <button
                     type="button"
                     onClick={() => openMemberDrawer(a.id_anggota)}
-                    className="flex-1 min-w-[5.5rem] min-h-touch px-3 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink text-xs font-bold flex items-center justify-center gap-1.5"
+                    className="flex-1 min-w-[5rem] min-h-ctl px-2.5 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink text-xs font-bold flex items-center justify-center gap-1.5"
                   >
-                    <User className="w-4 h-4 shrink-0" />
+                    <User className="w-3.5 h-3.5 shrink-0" />
                     <span>{t('directory.btnProfile')}</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => openRelationModal(a.id_anggota)}
-                    className="flex-1 min-w-[5.5rem] min-h-touch px-3 rounded-full bg-heritage-50 dark:bg-heritage-950/40 hover:bg-heritage-100 dark:hover:bg-heritage-900/50 border border-heritage-200/70 dark:border-heritage-800/60 text-heritage-800 dark:text-heritage-200 text-xs font-bold flex items-center justify-center gap-1.5"
+                    className="flex-1 min-w-[5rem] min-h-ctl px-2.5 rounded-full bg-heritage-50 dark:bg-heritage-950/40 hover:bg-heritage-100 dark:hover:bg-heritage-900/50 border border-heritage-200/70 dark:border-heritage-800/60 text-heritage-800 dark:text-heritage-200 text-xs font-bold flex items-center justify-center gap-1.5"
                   >
-                    <GitCompare className="w-4 h-4 shrink-0" />
+                    <GitCompare className="w-3.5 h-3.5 shrink-0" />
                     <span>{t('directory.btnRelation')}</span>
                   </button>
 
                   <Link
                     to={`/pohon?focus=${a.id_anggota}`}
-                    className="flex-1 min-w-[5.5rem] min-h-touch px-3 rounded-full bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm"
+                    className="flex-1 min-w-[5rem] min-h-ctl px-2.5 rounded-full bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm"
                   >
-                    <GitFork className="w-4 h-4 shrink-0" />
+                    <GitFork className="w-3.5 h-3.5 shrink-0" />
                     <span>{t('directory.btnTree')}</span>
                   </Link>
                 </div>
@@ -225,7 +225,7 @@ export function DirectoryPage() {
         <button
           type="button"
           onClick={() => setLimit((n) => n + PAGE_SIZE)}
-          className="w-full min-h-touch px-4 py-3 rounded-full border border-line bg-surface text-sm font-bold text-ink hover:bg-surface-2 shadow-card"
+          className="w-full min-h-touch px-4 py-2 rounded-full border border-line bg-surface text-sm font-bold text-ink hover:bg-surface-2 shadow-card"
         >
           {t('directory.loadMore', { remaining: filtered.length - visible.length })}
         </button>
