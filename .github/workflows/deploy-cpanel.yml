@@ -140,9 +140,13 @@ jobs:
             if [ "$HAS_USER_KNOWN_HOSTS" -eq 1 ]; then
               echo "::warning::Entri SSH_KNOWN_HOSTS tidak cocok untuk host/port target; mencoba pemindaian otomatis via ssh-keyscan."
             fi
-            ssh-keyscan -T 5 -p "$PORT" -t ed25519 "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+            KEYSCAN_ARGS=(-T 5 -p "$PORT")
+            if [[ "$SSH_HOST" != *:* ]]; then
+              KEYSCAN_ARGS=(-4 "${KEYSCAN_ARGS[@]}")
+            fi
+            ssh-keyscan "${KEYSCAN_ARGS[@]}" -t ed25519 "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
             if ! ssh-keygen -F "$HOST_LOOKUP" -f ~/.ssh/known_hosts >/dev/null 2>&1; then
-              ssh-keyscan -T 5 -p "$PORT" -t ecdsa,rsa "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+              ssh-keyscan "${KEYSCAN_ARGS[@]}" -t ecdsa,rsa "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
             fi
           fi
 
@@ -188,11 +192,39 @@ jobs:
             STRICT_MODE="yes"
           fi
 
-          SSH_COMMON="-i $HOME/.ssh/deploy_key -p $PORT -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=15 -o ServerAliveInterval=15 -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
+          IPV4_OPT=""
+          if [[ "$SSH_HOST" != *:* ]]; then
+            IPV4_OPT="-4 "
+          fi
+
+          SSH_COMMON="${IPV4_OPT}-i $HOME/.ssh/deploy_key -p $PORT -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=25 -o ConnectionAttempts=3 -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
           SSH_INIT_CMD="ssh $SSH_COMMON -o StrictHostKeyChecking=$STRICT_MODE"
           SSH_STRICT_CMD="ssh $SSH_COMMON -o StrictHostKeyChecking=yes"
 
-          $SSH_INIT_CMD "${SSH_USERNAME}@${SSH_HOST}" "TARGET='$CPANEL_TARGET_DIR'; case \"\$TARGET\" in '~/'*) TARGET=\"\$HOME/\${TARGET#~/}\" ;; /*) ;; *) TARGET=\"\$HOME/\$TARGET\" ;; esac; mkdir -p \"\$TARGET\""
+          INIT_REMOTE_CMD="TARGET='$CPANEL_TARGET_DIR'; case \"\$TARGET\" in '~/'*) TARGET=\"\$HOME/\${TARGET#~/}\" ;; /*) ;; *) TARGET=\"\$HOME/\$TARGET\" ;; esac; mkdir -p \"\$TARGET\""
+          MAX_ATTEMPTS=3
+          RETRY_BASE="${SSH_RETRY_DELAY_BASE:-5}"
+          ATTEMPT=1
+          while true; do
+            set +e
+            $SSH_INIT_CMD "${SSH_USERNAME}@${SSH_HOST}" "$INIT_REMOTE_CMD"
+            RC=$?
+            set -e
+            if [ "$RC" -eq 0 ]; then
+              break
+            fi
+            if [ "$RC" -eq 255 ] && [ "$ATTEMPT" -lt "$MAX_ATTEMPTS" ]; then
+              WAIT_SEC=$((ATTEMPT * RETRY_BASE))
+              echo "::warning::Koneksi SSH gagal (exit 255, percobaan ${ATTEMPT}/${MAX_ATTEMPTS}). Mencoba ulang dalam ${WAIT_SEC} detik..."
+              sleep "$WAIT_SEC"
+              ATTEMPT=$((ATTEMPT + 1))
+              continue
+            fi
+            if [ "$RC" -eq 255 ]; then
+              echo "::error::Koneksi SSH ke server cPanel gagal setelah ${MAX_ATTEMPTS} percobaan (exit 255). Jika muncul 'Network is unreachable' atau 'Connection timed out', kemungkinan IP runner GitHub Actions sementara diblokir firewall hosting (CSF/Imunify360) atau jalur jaringan bermasalah. Klik 'Re-run jobs' untuk mendapat IP runner baru, dan pastikan secret SSH_HOST menggunakan IPv4 server secara langsung."
+            fi
+            exit "$RC"
+          done
 
           if $SSH_STRICT_CMD "${SSH_USERNAME}@${SSH_HOST}" "command -v rsync >/dev/null 2>&1"; then
             rsync -avz --delete \
