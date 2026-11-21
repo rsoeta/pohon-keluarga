@@ -270,6 +270,21 @@ export default {
     updateSuccess: 'Profile changes saved!',
     photoWarning: 'Member details saved, but photo upload failed.'
   },
+  datepicker: {
+    placeholder: 'Select date...',
+    dialogTitle: 'Select Date',
+    prevMonth: 'Previous month',
+    nextMonth: 'Next month',
+    prevYears: 'Previous 12 years',
+    nextYears: 'Next 12 years',
+    chooseMonth: 'Choose month',
+    chooseYear: 'Choose year',
+    yearJumpPlaceholder: 'Jump to year (e.g. 1978)',
+    applyYear: 'Apply',
+    today: 'Today',
+    clear: 'Clear',
+    backToCalendar: 'Back to calendar'
+  },
   nasab: {
     title: 'Family Relationship Calculator',
     fromLabel: 'From Profile',

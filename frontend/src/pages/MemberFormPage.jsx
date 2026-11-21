@@ -8,8 +8,10 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 import { useI18n } from '../contexts/I18nContext.jsx';
 import { canDelete, canEditAnggota, isAdmin } from '../lib/rbac.js';
 import { compressImageFile } from '../lib/imageCompress.js';
+import { getLocalTodayIso } from '../lib/calendar.js';
 import { validateBirthDateInput } from '../lib/format.js';
 import { alertError, confirmAction, toastError, toastSuccess } from '../lib/swal.js';
+import { DatePicker } from '../components/common/DatePicker.jsx';
 import { MemberAvatar } from '../components/common/MemberAvatar.jsx';
 import { SegmentedPillControl } from '../components/common/SegmentedPillControl.jsx';
 
@@ -612,11 +614,12 @@ export function MemberFormPage() {
             />
 
             {birthMode === 'full' && (
-              <input
-                type="date"
+              <DatePicker
+                id="f-birth-full"
                 value={birthFull}
-                onChange={(e) => setBirthFull(e.target.value)}
-                className="w-full min-h-touch px-4 py-2.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
+                onChange={setBirthFull}
+                maxDate={getLocalTodayIso()}
+                ariaLabel={t('form.birthModeFull')}
               />
             )}
             {birthMode === 'year' && (

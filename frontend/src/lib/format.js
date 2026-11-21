@@ -2,8 +2,7 @@
  * Utilitas pemformatan biodata, kode unik, dan validasi tanggal parsial.
  */
 
-const MONTHS_ID = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+import { daysInMonth, getLocalTodayIso, getMonthNames } from './calendar.js';
 
 export function formatTglLahir(tgl, lang = 'id') {
   const s = String(tgl || '').trim();
@@ -14,7 +13,7 @@ export function formatTglLahir(tgl, lang = 'id') {
   const y = Number(m[1]);
   const monIdx = Number(m[2]) - 1;
   const d = Number(m[3]);
-  const months = lang === 'en' ? MONTHS_EN : MONTHS_ID;
+  const { short: months } = getMonthNames(lang);
   const monLabel = months[monIdx] || m[2];
   return `${d} ${monLabel} ${y}`;
 }
@@ -43,20 +42,8 @@ export function getInitials(name) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-function isLeap(y) {
-  return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
-}
-
-function daysInMonth(y, m) {
-  return [31, isLeap(y) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1];
-}
-
-/**
- * Validasi tanggal lahir 3 mode: 'empty' | 'year' | 'full'.
- * Mengembalikan { ok: true, value } atau { ok: false }.
- */
 export function validateBirthDateInput(mode, fullDate, yearOnly, refTodayStr) {
-  const today = refTodayStr || new Date().toISOString().slice(0, 10);
+  const today = refTodayStr || getLocalTodayIso();
   const thisYear = Number(today.slice(0, 4));
 
   if (mode === 'empty') return { ok: true, value: '' };

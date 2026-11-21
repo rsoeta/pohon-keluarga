@@ -246,7 +246,7 @@ export default {
     invalidBirthDate: 'Tanggal atau tahun lahir tidak valid.',
     livingStatus: 'Status Hidup',
     childStatus: 'Status Anak',
-    childOrder: 'Urutan Anak (Opsional)',
+    childOrder: 'Urutan Anak (Ops)',
     childOrderPlaceholder: 'Otomatis jika dikosongkan',
     domicile: 'Domisili',
     domicilePlaceholder: 'Contoh: Bandung, Jawa Barat',
@@ -269,6 +269,21 @@ export default {
     createSuccess: 'Anggota berhasil ditambahkan!',
     updateSuccess: 'Perubahan profil disimpan!',
     photoWarning: 'Biodata tersimpan, namun foto gagal diunggah.'
+  },
+  datepicker: {
+    placeholder: 'Pilih tanggal...',
+    dialogTitle: 'Pilih Tanggal',
+    prevMonth: 'Bulan sebelumnya',
+    nextMonth: 'Bulan berikutnya',
+    prevYears: '12 tahun sebelumnya',
+    nextYears: '12 tahun berikutnya',
+    chooseMonth: 'Pilih bulan',
+    chooseYear: 'Pilih tahun',
+    yearJumpPlaceholder: 'Lompat tahun (mis. 1978)',
+    applyYear: 'Terapkan',
+    today: 'Hari Ini',
+    clear: 'Hapus',
+    backToCalendar: 'Kembali ke kalender'
   },
   nasab: {
     title: 'Kalkulator Hubungan Keluarga',
