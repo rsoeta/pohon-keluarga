@@ -107,16 +107,42 @@ jobs:
           PORT="$(trim "${SSH_PORT:-22}")"
           [ -z "$PORT" ] && PORT="22"
 
+          if [ "$PORT" = "22" ]; then
+            HOST_LOOKUP="$SSH_HOST"
+          else
+            HOST_LOOKUP="[$SSH_HOST]:$PORT"
+          fi
+
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           printf '%s\n' "${SSH_PRIVATE_KEY//$'\r'/}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+
+          : > ~/.ssh/known_hosts
           if [ -n "${SSH_KNOWN_HOSTS:-}" ]; then
-            printf '%s\n' "${SSH_KNOWN_HOSTS//$'\r'/}" > ~/.ssh/known_hosts
-          else
-            ssh-keyscan -p "$PORT" -H "$SSH_HOST" > ~/.ssh/known_hosts
+            printf '%s\n' "${SSH_KNOWN_HOSTS//$'\r'/}" | awk 'NF' > ~/.ssh/known_hosts
+            if [ "$PORT" != "22" ] && ! ssh-keygen -F "$HOST_LOOKUP" -f ~/.ssh/known_hosts >/dev/null 2>&1; then
+              if awk -v h="$SSH_HOST" '$1 == h { found=1 } END { exit(found ? 0 : 1) }' ~/.ssh/known_hosts; then
+                awk -v h="$SSH_HOST" -v hl="$HOST_LOOKUP" '{ if ($1 == h) $1 = hl; print }' ~/.ssh/known_hosts > ~/.ssh/known_hosts.tmp
+                mv ~/.ssh/known_hosts.tmp ~/.ssh/known_hosts
+              fi
+            fi
           fi
+
+          if ! ssh-keygen -F "$HOST_LOOKUP" -f ~/.ssh/known_hosts >/dev/null 2>&1; then
+            if [ -n "${SSH_KNOWN_HOSTS:-}" ]; then
+              echo "::warning::Entri SSH_KNOWN_HOSTS tidak cocok untuk host/port target; mencoba pemindaian ulang via ssh-keyscan."
+            fi
+            ssh-keyscan -T 15 -p "$PORT" -t ed25519,ecdsa,rsa "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          fi
+
           chmod 644 ~/.ssh/known_hosts
+          if ! ssh-keygen -F "$HOST_LOOKUP" -f ~/.ssh/known_hosts >/dev/null 2>&1; then
+            echo "::error::Gagal memverifikasi host key SSH pada port $PORT. Periksa secret SSH_HOST, SSH_PORT, atau SSH_KNOWN_HOSTS serta akses port SSH hosting Anda."
+            exit 1
+          fi
+          KEY_COUNT="$(ssh-keygen -F "$HOST_LOOKUP" -f ~/.ssh/known_hosts | grep -cv '^#' || true)"
+          echo "Host key SSH terverifikasi ($KEY_COUNT kunci dimuat)."
 
       - name: Deploy frontend/dist ke cPanel via SSH
         env:
