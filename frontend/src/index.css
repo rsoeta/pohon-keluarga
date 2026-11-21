@@ -104,7 +104,8 @@
   }
 
   body {
-    font-family: 'Quicksand', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    /* font-family: 'Quicksand', ui-sans-serif, system-ui, -apple-system, sans-serif; */
+    font-family: 'Barlow Semi Condensed', ui-sans-serif, system-ui, -apple-system, sans-serif;
     background-color: var(--bg);
     color: var(--text);
     overflow-x: hidden;
@@ -219,9 +220,10 @@
   }
 }
 
-/* Penyesuaian SweetAlert2: font Quicksand, palet organic pine/teal, ukuran tombol compact */
+/* Penyesuaian SweetAlert2: font Barlow Semi Condensed (sebelumnya Quicksand), palet organic pine/teal, ukuran tombol compact */
 .swal2-popup.nasab-swal-popup {
-  font-family: 'Quicksand', ui-sans-serif, system-ui, sans-serif;
+  /* font-family: 'Quicksand', ui-sans-serif, system-ui, sans-serif; */
+  font-family: 'Barlow Semi Condensed', ui-sans-serif, system-ui, sans-serif;
   border-radius: 1.375rem;
   border: 1px solid var(--line);
   box-shadow: var(--shadow-float);
@@ -247,13 +249,15 @@
   min-width: 5rem;
   padding: 0.5rem 1.15rem;
   border-radius: 9999px;
-  font-family: 'Quicksand', ui-sans-serif, system-ui, sans-serif;
+  /* font-family: 'Quicksand', ui-sans-serif, system-ui, sans-serif; */
+  font-family: 'Barlow Semi Condensed', ui-sans-serif, system-ui, sans-serif;
   font-weight: 700;
   font-size: 0.875rem;
 }
 
 .swal2-popup.swal2-toast.nasab-swal-toast {
-  font-family: 'Quicksand', ui-sans-serif, system-ui, sans-serif;
+  /* font-family: 'Quicksand', ui-sans-serif, system-ui, sans-serif; */
+  font-family: 'Barlow Semi Condensed', ui-sans-serif, system-ui, sans-serif;
   border-radius: 9999px;
   border: 1px solid var(--line);
 }
