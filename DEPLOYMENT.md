@@ -85,11 +85,18 @@ Selanjutnya di **cPanel**:
 2. Isi nama kunci (mis. `github-deploy`), tempelkan isi file `~/.ssh/cpanel_pohon_keluarga.pub` ke kolom **Public Key** (kolom Private Key biarkan kosong), lalu klik **Import**.
 3. Kembali ke daftar Public Keys, klik **Manage** di sebelah kunci `github-deploy` → klik **Authorize**.
 4. Cek port SSH shared hosting Anda (umumnya `22`, atau port khusus seperti `2222` / `21098` yang tertera di panel informasi akun cPanel / penyedia hosting).
-5. *(Direkomendasikan)* Ambil *host key fingerprint* server cPanel untuk verifikasi ketat agar kebal MITM:
+5. *(Direkomendasikan)* Ambil *host key fingerprint* server cPanel untuk verifikasi ketat (`StrictHostKeyChecking=yes`) agar kebal MITM:
    ```bash
    ssh-keyscan -p PORT_SSH HOST_CPANEL
    ```
    Simpan outputnya untuk secret `SSH_KNOWN_HOSTS`.
+   > **Catatan untuk server OpenSSH 9.9:** Apabila `ssh-keyscan` gagal dengan galat `choose_kex: unsupported KEX method` dan tidak menampilkan baris kunci, Anda memiliki dua opsi:
+   > 1. **Biarkan secret `SSH_KNOWN_HOSTS` kosong** — workflow otomatis menggunakan `StrictHostKeyChecking=accept-new` saat koneksi awal lalu menguncinya (`StrictHostKeyChecking=yes`) selama transfer file; **atau**
+   > 2. **Ambil host key langsung via `ssh`** untuk pinning permanen:
+   >    ```bash
+   >    ssh -p PORT_SSH -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=tmp_known_hosts -o BatchMode=yes HOST_CPANEL exit
+   >    ```
+   >    *(Galat `Permission denied` adalah normal karena tidak memakai kunci login — host key tetap tersimpan di file `tmp_known_hosts`. Salin seluruh isi `tmp_known_hosts` ke secret `SSH_KNOWN_HOSTS`, lalu hapus file `tmp_known_hosts`.)*
 
 ##### Langkah 3 — Isi GitHub Repository Secrets
 Buat repositori privat di GitHub, lalu masuk ke **Settings → Secrets and variables → Actions → New repository secret** dan tambahkan:
@@ -102,7 +109,7 @@ Buat repositori privat di GitHub, lalu masuk ke **Settings → Secrets and varia
 | `SSH_USERNAME` | Username login cPanel Anda (mis. `u1234567`) |
 | `SSH_PRIVATE_KEY` | Seluruh isi file private key `~/.ssh/cpanel_pohon_keluarga` (dari `-----BEGIN OPENSSH PRIVATE KEY-----` hingga `-----END OPENSSH PRIVATE KEY-----`) |
 | `CPANEL_TARGET_DIR` | Path **Document Root** domain dari Langkah 1; mendukung format absolut (`/home/u1234567/www.altasim.studio-pasti.net`), berbasis home (`~/www.altasim.studio-pasti.net`), maupun relatif dari `$HOME` seperti di cPanel (`public_html` atau `www.altasim.studio-pasti.net`) |
-| `SSH_KNOWN_HOSTS` | *(Opsional, disarankan)* Output dari `ssh-keyscan -p PORT_SSH HOST_CPANEL` |
+| `SSH_KNOWN_HOSTS` | *(Opsional, disarankan)* Output dari `ssh-keyscan -p PORT_SSH HOST_CPANEL` atau isi `tmp_known_hosts` dari perintah `ssh` pada Langkah 2.5 (kosongkan jika tidak diisi; workflow otomatis beralih ke `accept-new`) |
 
 ##### Langkah 4 — Hubungkan Git & Push Pertama
 Dari folder root proyek (`c:\laragon\www\pohon-keluarga`):

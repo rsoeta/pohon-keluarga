@@ -118,8 +118,15 @@ jobs:
           printf '%s\n' "${SSH_PRIVATE_KEY//$'\r'/}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
+          if ! ssh-keygen -y -P "" -f ~/.ssh/deploy_key >/dev/null 2>&1; then
+            echo "::error::Secret SSH_PRIVATE_KEY tidak valid atau masih dilindungi passphrase. Pastikan yang ditempel adalah isi file private key (bukan .pub) tanpa passphrase."
+            exit 1
+          fi
+
           : > ~/.ssh/known_hosts
-          if [ -n "${SSH_KNOWN_HOSTS:-}" ]; then
+          HAS_USER_KNOWN_HOSTS=0
+          if [ -n "$(trim "${SSH_KNOWN_HOSTS:-}")" ]; then
+            HAS_USER_KNOWN_HOSTS=1
             printf '%s\n' "${SSH_KNOWN_HOSTS//$'\r'/}" | awk 'NF' > ~/.ssh/known_hosts
             if [ "$PORT" != "22" ] && ! ssh-keygen -F "$HOST_LOOKUP" -f ~/.ssh/known_hosts >/dev/null 2>&1; then
               if awk -v h="$SSH_HOST" '$1 == h { found=1 } END { exit(found ? 0 : 1) }' ~/.ssh/known_hosts; then
@@ -130,19 +137,28 @@ jobs:
           fi
 
           if ! ssh-keygen -F "$HOST_LOOKUP" -f ~/.ssh/known_hosts >/dev/null 2>&1; then
-            if [ -n "${SSH_KNOWN_HOSTS:-}" ]; then
-              echo "::warning::Entri SSH_KNOWN_HOSTS tidak cocok untuk host/port target; mencoba pemindaian ulang via ssh-keyscan."
+            if [ "$HAS_USER_KNOWN_HOSTS" -eq 1 ]; then
+              echo "::warning::Entri SSH_KNOWN_HOSTS tidak cocok untuk host/port target; mencoba pemindaian otomatis via ssh-keyscan."
             fi
-            ssh-keyscan -T 15 -p "$PORT" -t ed25519,ecdsa,rsa "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+            ssh-keyscan -T 5 -p "$PORT" -t ed25519 "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+            if ! ssh-keygen -F "$HOST_LOOKUP" -f ~/.ssh/known_hosts >/dev/null 2>&1; then
+              ssh-keyscan -T 5 -p "$PORT" -t ecdsa,rsa "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+            fi
           fi
 
           chmod 644 ~/.ssh/known_hosts
-          if ! ssh-keygen -F "$HOST_LOOKUP" -f ~/.ssh/known_hosts >/dev/null 2>&1; then
-            echo "::error::Gagal memverifikasi host key SSH pada port $PORT. Periksa secret SSH_HOST, SSH_PORT, atau SSH_KNOWN_HOSTS serta akses port SSH hosting Anda."
-            exit 1
+          if ssh-keygen -F "$HOST_LOOKUP" -f ~/.ssh/known_hosts >/dev/null 2>&1; then
+            STRICT_MODE="yes"
+            KEY_COUNT="$(ssh-keygen -F "$HOST_LOOKUP" -f ~/.ssh/known_hosts | grep -cv '^#' || true)"
+            echo "Host key SSH terverifikasi ($KEY_COUNT kunci dimuat, mode ketat)."
+          else
+            : > ~/.ssh/known_hosts
+            chmod 644 ~/.ssh/known_hosts
+            STRICT_MODE="accept-new"
+            echo "::warning::ssh-keyscan tidak memperoleh host key (umum terjadi pada server OpenSSH 9.9). Beralih ke StrictHostKeyChecking=accept-new untuk sesi deploy ini; isi secret SSH_KNOWN_HOSTS via perintah ssh di DEPLOYMENT.md untuk pinning permanen."
           fi
-          KEY_COUNT="$(ssh-keygen -F "$HOST_LOOKUP" -f ~/.ssh/known_hosts | grep -cv '^#' || true)"
-          echo "Host key SSH terverifikasi ($KEY_COUNT kunci dimuat)."
+
+          echo "SSH_STRICT_MODE=$STRICT_MODE" >> "$GITHUB_ENV"
 
       - name: Deploy frontend/dist ke cPanel via SSH
         env:
@@ -167,18 +183,26 @@ jobs:
           PORT="$(trim "${SSH_PORT:-22}")"
           [ -z "$PORT" ] && PORT="22"
 
-          SSH_CMD="ssh -i $HOME/.ssh/deploy_key -p $PORT -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
-          $SSH_CMD "${SSH_USERNAME}@${SSH_HOST}" "TARGET='$CPANEL_TARGET_DIR'; case \"\$TARGET\" in '~/'*) TARGET=\"\$HOME/\${TARGET#~/}\" ;; /*) ;; *) TARGET=\"\$HOME/\$TARGET\" ;; esac; mkdir -p \"\$TARGET\""
+          STRICT_MODE="${SSH_STRICT_MODE:-yes}"
+          if [ "$STRICT_MODE" != "yes" ] && [ "$STRICT_MODE" != "accept-new" ]; then
+            STRICT_MODE="yes"
+          fi
 
-          if $SSH_CMD "${SSH_USERNAME}@${SSH_HOST}" "command -v rsync >/dev/null 2>&1"; then
+          SSH_COMMON="-i $HOME/.ssh/deploy_key -p $PORT -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=15 -o ServerAliveInterval=15 -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
+          SSH_INIT_CMD="ssh $SSH_COMMON -o StrictHostKeyChecking=$STRICT_MODE"
+          SSH_STRICT_CMD="ssh $SSH_COMMON -o StrictHostKeyChecking=yes"
+
+          $SSH_INIT_CMD "${SSH_USERNAME}@${SSH_HOST}" "TARGET='$CPANEL_TARGET_DIR'; case \"\$TARGET\" in '~/'*) TARGET=\"\$HOME/\${TARGET#~/}\" ;; /*) ;; *) TARGET=\"\$HOME/\$TARGET\" ;; esac; mkdir -p \"\$TARGET\""
+
+          if $SSH_STRICT_CMD "${SSH_USERNAME}@${SSH_HOST}" "command -v rsync >/dev/null 2>&1"; then
             rsync -avz --delete \
               --exclude='.well-known/' \
               --exclude='cgi-bin/' \
               --exclude='error_log' \
-              -e "$SSH_CMD" \
+              -e "$SSH_STRICT_CMD" \
               frontend/dist/ "${SSH_USERNAME}@${SSH_HOST}:${CPANEL_TARGET_DIR}/"
           else
-            tar -C frontend/dist -czf - . | $SSH_CMD "${SSH_USERNAME}@${SSH_HOST}" \
+            tar -C frontend/dist -czf - . | $SSH_STRICT_CMD "${SSH_USERNAME}@${SSH_HOST}" \
               "TARGET='$CPANEL_TARGET_DIR'; case \"\$TARGET\" in '~/'*) TARGET=\"\$HOME/\${TARGET#~/}\" ;; /*) ;; *) TARGET=\"\$HOME/\$TARGET\" ;; esac; find \"\$TARGET\" -mindepth 1 -maxdepth 1 ! -name '.well-known' ! -name 'cgi-bin' ! -name 'error_log' -exec rm -rf {} + && tar -xzf - -C \"\$TARGET\""
           fi
 
