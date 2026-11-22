@@ -141,7 +141,7 @@ export function ProfileDetailPage() {
   const waUrl = formatWaUrl(member.no_wa);
 
   return (
-    <div className="space-y-4">
+    <div className="flex-1 flex flex-col gap-3.5">
       {/* Bar Atas: Kembali + 3 Aksi Cepat */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <button
@@ -183,279 +183,295 @@ export function ProfileDetailPage() {
         </div>
       </div>
 
-      {/* Header Profil */}
-      <section className="bg-surface rounded-card border border-line p-5 shadow-card">
-        <div className="flex flex-wrap items-center gap-4">
-          <MemberAvatar
-            fileId={member.foto_file_id}
-            name={member.nama_lengkap}
-            gender={member.jenis_kelamin}
-            isLiving={member.status_hidup}
-            size="xl"
-          />
+      {/* Split-View Grid Desktop: Identitas & Biodata (Kiri) + Relasi Keluarga (Kanan) */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-stretch">
+        {/* Kolom Kiri (5 cols): Identitas Profil + Biodata + Hapus Admin */}
+        <div className="lg:col-span-5 flex flex-col min-w-0">
+          <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card flex-1 flex flex-col justify-between gap-4">
+            <div className="space-y-4">
+              {/* Header Identitas */}
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-3.5">
+                <MemberAvatar
+                  fileId={member.foto_file_id}
+                  name={member.nama_lengkap}
+                  gender={member.jenis_kelamin}
+                  isLiving={member.status_hidup}
+                  size="xl"
+                />
 
-          <div className="min-w-0 flex-1 space-y-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-ink break-words">
-              {member.nama_lengkap}
-            </h1>
+                <div className="min-w-0 flex-1 space-y-2">
+                  <h1 className="text-xl sm:text-2xl font-bold text-ink break-words leading-snug">
+                    {member.nama_lengkap}
+                  </h1>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleCopy(formatKodeUnik(member.kode_unik))}
-                title={t('profile.copyCode')}
-                className="min-h-ctl px-3 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink text-xs font-bold inline-flex items-center gap-1.5 font-mono"
-              >
-                <span>{formatKodeUnik(member.kode_unik)}</span>
-                <Copy className="w-3.5 h-3.5 text-muted" />
-              </button>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(formatKodeUnik(member.kode_unik))}
+                      title={t('profile.copyCode')}
+                      className="min-h-ctl px-2.5 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-ink text-xs font-bold inline-flex items-center gap-1.5 font-mono"
+                    >
+                      <span>{formatKodeUnik(member.kode_unik)}</span>
+                      <Copy className="w-3.5 h-3.5 text-muted" />
+                    </button>
 
-              <span className="px-3 py-1.5 rounded-full bg-brand-100/80 dark:bg-brand-950/50 text-brand-800 dark:text-brand-200 text-xs font-bold">
-                {member.jenis_kelamin === 'L' ? t('common.male') : t('common.female')}
-              </span>
+                    <span className="px-2.5 py-1 rounded-full bg-brand-100/80 dark:bg-brand-950/50 text-brand-800 dark:text-brand-200 text-xs font-bold">
+                      {member.jenis_kelamin === 'L' ? t('common.male') : t('common.female')}
+                    </span>
 
-              <span
-                className={`px-3 py-1.5 rounded-full text-xs font-bold ${
-                  member.status_hidup
-                    ? 'bg-emerald-100/80 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300'
-                    : 'bg-surface-2 border border-line text-muted'
-                }`}
-              >
-                {member.status_hidup ? t('common.living') : t('common.deceased')}
-              </span>
+                    <span
+                      className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                        member.status_hidup
+                          ? 'bg-emerald-100/80 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300'
+                          : 'bg-surface-2 border border-line text-muted'
+                      }`}
+                    >
+                      {member.status_hidup ? t('common.living') : t('common.deceased')}
+                    </span>
 
-              {member.urutan_anak && (
-                <span className="px-3 py-1.5 rounded-full bg-surface-2 border border-line text-muted text-xs font-bold">
-                  {t('profile.childOrder', { n: member.urutan_anak })}
-                </span>
-              )}
+                    {member.urutan_anak && (
+                      <span className="px-2.5 py-1 rounded-full bg-surface-2 border border-line text-muted text-xs font-bold">
+                        {t('profile.childOrder', { n: member.urutan_anak })}
+                      </span>
+                    )}
 
-              {member.status_anak === 'Angkat' && (
-                <span className="px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 text-xs font-bold">
-                  {t('common.adopted')}
-                </span>
-              )}
+                    {member.status_anak === 'Angkat' && (
+                      <span className="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 text-xs font-bold">
+                        {t('common.adopted')}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Biodata Ringkas */}
+              <div className="pt-3.5 border-t border-line space-y-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="p-2.5 rounded-tile bg-surface-2 border border-line flex items-start gap-2.5 min-w-0">
+                    <Calendar className="w-4 h-4 text-brand-700 dark:text-brand-300 shrink-0 mt-0.5" />
+                    <div className="min-w-0">
+                      <p className="text-[0.6875rem] font-bold text-faint">{t('profile.birthDate')}</p>
+                      <p className="text-sm font-bold text-ink truncate">{formatTglLahir(member.tgl_lahir, lang)}</p>
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded-tile bg-surface-2 border border-line flex items-start gap-2.5 min-w-0">
+                    <MapPin className="w-4 h-4 text-brand-700 dark:text-brand-300 shrink-0 mt-0.5" />
+                    <div className="min-w-0">
+                      <p className="text-[0.6875rem] font-bold text-faint">{t('profile.domicile')}</p>
+                      <p className="text-sm font-bold text-ink break-words">
+                        {member.domisili || t('common.notSet')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-tile bg-surface-2 border border-line flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-start gap-2.5 min-w-0">
+                    <MessageCircle className="w-4 h-4 text-wa shrink-0 mt-0.5" />
+                    <div className="min-w-0">
+                      <p className="text-[0.6875rem] font-bold text-faint">{t('profile.whatsapp')}</p>
+                      <p className="text-sm font-bold text-ink truncate">
+                        {member.no_wa ? `+${member.no_wa}` : t('common.notSet')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {waUrl && (
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(`+${member.no_wa}`)}
+                        aria-label={t('common.copySuccess')}
+                        className="h-8 w-8 flex items-center justify-center rounded-full bg-surface border border-line text-ink hover:bg-[var(--well)]"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                      <a
+                        href={waUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="min-h-ctl px-3 rounded-full bg-wa hover:bg-wa-hover text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-colors"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>{t('profile.chatWa')}</span>
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Biodata */}
-      <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3">
-        <div className="flex items-start gap-3">
-          <Calendar className="w-5 h-5 text-brand-700 dark:text-brand-300 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-xs font-bold text-faint">{t('profile.birthDate')}</p>
-            <p className="text-sm font-bold text-ink">{formatTglLahir(member.tgl_lahir, lang)}</p>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-3 pt-2 border-t border-line">
-          <MapPin className="w-5 h-5 text-brand-700 dark:text-brand-300 shrink-0 mt-0.5" />
-          <div className="min-w-0">
-            <p className="text-xs font-bold text-faint">{t('profile.domicile')}</p>
-            <p className="text-sm font-bold text-ink break-words">
-              {member.domisili || t('common.notSet')}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-line">
-          <div className="flex items-start gap-3 min-w-0">
-            <MessageCircle className="w-5 h-5 text-wa shrink-0 mt-0.5" />
-            <div>
-              <p className="text-xs font-bold text-faint">{t('profile.whatsapp')}</p>
-              <p className="text-sm font-bold text-ink">
-                {member.no_wa ? `+${member.no_wa}` : t('common.notSet')}
-              </p>
-            </div>
-          </div>
-
-          {waUrl && (
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => handleCopy(`+${member.no_wa}`)}
-                aria-label={t('common.copySuccess')}
-                className="h-9 w-9 flex items-center justify-center rounded-full bg-surface-2 border border-line text-ink hover:bg-[var(--well)]"
-              >
-                <Copy className="w-4 h-4" />
-              </button>
-              <a
-                href={waUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="min-h-ctl px-3.5 rounded-full bg-wa hover:bg-wa-hover text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-colors"
-              >
-                <MessageCircle className="w-3.5 h-3.5" />
-                <span>{t('profile.chatWa')}</span>
-              </a>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Orang Tua */}
-      <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-faint flex items-center gap-2">
-          <Users className="w-4 h-4 text-brand-700 dark:text-brand-300" />
-          <span>{t('profile.parentsSection')}</span>
-        </h2>
-
-        {!ayah && !ibu ? (
-          <p className="text-sm text-muted">{t('profile.noParents')}</p>
-        ) : (
-          <div className="flex flex-wrap gap-2.5">
-            {[
-              [ayah, t('profile.father')],
-              [ibu, t('profile.mother')]
-            ]
-              .filter(([p]) => Boolean(p))
-              .map(([p, role]) => (
-                <Link
-                  key={p.id_anggota}
-                  to={`/profil/${p.id_anggota}`}
-                  className="flex-1 min-w-[12rem] min-h-touch p-3 rounded-tile bg-surface-2 hover:bg-[var(--well)] border border-line flex items-center gap-3 transition-colors"
+            {/* Hapus Data (Khusus Admin) */}
+            {allowDelete && (
+              <div className="pt-3 border-t border-line">
+                <button
+                  type="button"
+                  disabled={deleting || !isOnline}
+                  onClick={handleDelete}
+                  className="w-full min-h-ctl px-4 rounded-full bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-colors"
                 >
-                  <MemberAvatar
-                    fileId={p.foto_file_id}
-                    name={p.nama_lengkap}
-                    gender={p.jenis_kelamin}
-                    isLiving={p.status_hidup}
-                    size="md"
-                  />
-                  <div className="min-w-0">
-                    <p className="text-[0.7rem] font-bold uppercase text-brand-700 dark:text-brand-300">
-                      {role}
-                    </p>
-                    <p className="text-sm font-bold text-ink truncate">{p.nama_lengkap}</p>
-                  </div>
-                </Link>
-              ))}
-          </div>
-        )}
-      </section>
-
-      {/* Pasangan */}
-      <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-faint flex items-center gap-2">
-            <Heart className="w-4 h-4 text-rose-500" />
-            <span>{t('profile.spousesSection')}</span>
-          </h2>
-          {canEdit && (user?.id_anggota === member.id_anggota || user?.role === 'Admin') && (
-            <Link
-              to={`/tambah?mode=pasangan&target=${member.id_anggota}`}
-              className="min-h-ctl px-3 rounded-full bg-brand-100/80 dark:bg-brand-950/50 text-brand-800 dark:text-brand-200 text-xs font-bold inline-flex items-center gap-1 hover:bg-brand-100"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>{t('profile.addSpouse')}</span>
-            </Link>
-          )}
+                  <Trash2 className="w-4 h-4" />
+                  <span>{t('profile.deleteBtn')}</span>
+                </button>
+              </div>
+            )}
+          </section>
         </div>
 
-        {!spouses.length ? (
-          <p className="text-sm text-muted">{t('profile.noSpouses')}</p>
-        ) : (
-          <div className="flex flex-wrap gap-2.5">
-            {spouses.map(({ pernikahan, anggota }) => (
-              <Link
-                key={pernikahan.id_pernikahan}
-                to={`/profil/${anggota.id_anggota}`}
-                className="flex-1 min-w-[12rem] min-h-touch p-3 rounded-tile bg-surface-2 hover:bg-[var(--well)] border border-line flex items-center justify-between gap-2 transition-colors"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <MemberAvatar
-                    fileId={anggota.foto_file_id}
-                    name={anggota.nama_lengkap}
-                    gender={anggota.jenis_kelamin}
-                    isLiving={anggota.status_hidup}
-                    size="md"
-                  />
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-ink truncate">{anggota.nama_lengkap}</p>
-                    <p className="text-xs font-semibold text-muted font-mono">#{anggota.kode_unik}</p>
-                  </div>
-                </div>
-                <span className="shrink-0 px-2.5 py-1 rounded-full bg-surface border border-line text-[0.7rem] font-bold text-ink">
-                  {pernikahan.status_pernikahan}
-                </span>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
+        {/* Kolom Kanan (7 cols): Orang Tua + Pasangan + Anak */}
+        <div className="lg:col-span-7 flex flex-col gap-3.5 min-w-0">
+          {/* Baris Atas Kanan: Orang Tua & Pasangan berdampingan */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {/* Orang Tua */}
+            <section className="bg-surface rounded-card border border-line p-4 shadow-card space-y-2.5">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-faint flex items-center gap-2">
+                <Users className="w-4 h-4 text-brand-700 dark:text-brand-300" />
+                <span>{t('profile.parentsSection')}</span>
+              </h2>
 
-      {/* Anak */}
-      <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-faint flex items-center gap-2">
-            <Users className="w-4 h-4 text-brand-700 dark:text-brand-300" />
-            <span>
-              {t('profile.childrenSection')} ({children.length})
-            </span>
-          </h2>
-          {canEdit && (user?.id_anggota === member.id_anggota || user?.role === 'Admin') && (
-            <Link
-              to={`/tambah?mode=anak&target=${member.id_anggota}`}
-              className="min-h-ctl px-3 rounded-full bg-brand-100/80 dark:bg-brand-950/50 text-brand-800 dark:text-brand-200 text-xs font-bold inline-flex items-center gap-1 hover:bg-brand-100"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>{t('profile.addChild')}</span>
-            </Link>
-          )}
-        </div>
-
-        {!children.length ? (
-          <p className="text-sm text-muted">{t('profile.noChildren')}</p>
-        ) : (
-          <div className="flex flex-wrap gap-2.5">
-            {children.map((c) => (
-              <Link
-                key={c.id_anggota}
-                to={`/profil/${c.id_anggota}`}
-                className="flex-1 min-w-[12rem] min-h-touch p-3 rounded-tile bg-surface-2 hover:bg-[var(--well)] border border-line flex items-center justify-between gap-2 transition-colors"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <MemberAvatar
-                    fileId={c.foto_file_id}
-                    name={c.nama_lengkap}
-                    gender={c.jenis_kelamin}
-                    isLiving={c.status_hidup}
-                    size="md"
-                  />
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-ink truncate">{c.nama_lengkap}</p>
-                    <p className="text-xs font-semibold text-muted">
-                      {c.urutan_anak ? t('profile.childOrder', { n: c.urutan_anak }) : `#${c.kode_unik}`}
-                    </p>
-                  </div>
+              {!ayah && !ibu ? (
+                <p className="text-sm text-muted">{t('profile.noParents')}</p>
+              ) : (
+                <div className="space-y-2">
+                  {[
+                    [ayah, t('profile.father')],
+                    [ibu, t('profile.mother')]
+                  ]
+                    .filter(([p]) => Boolean(p))
+                    .map(([p, role]) => (
+                      <Link
+                        key={p.id_anggota}
+                        to={`/profil/${p.id_anggota}`}
+                        className="min-h-touch p-2.5 rounded-tile bg-surface-2 hover:bg-[var(--well)] border border-line flex items-center gap-2.5 transition-colors"
+                      >
+                        <MemberAvatar
+                          fileId={p.foto_file_id}
+                          name={p.nama_lengkap}
+                          gender={p.jenis_kelamin}
+                          isLiving={p.status_hidup}
+                          size="md"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[0.6875rem] font-bold uppercase text-brand-700 dark:text-brand-300">
+                            {role}
+                          </p>
+                          <p className="text-sm font-bold text-ink truncate">{p.nama_lengkap}</p>
+                        </div>
+                      </Link>
+                    ))}
                 </div>
-                {c.status_anak === 'Angkat' && (
-                  <span className="shrink-0 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 text-[0.65rem] font-bold">
-                    {t('common.adopted')}
-                  </span>
+              )}
+            </section>
+
+            {/* Pasangan */}
+            <section className="bg-surface rounded-card border border-line p-4 shadow-card space-y-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-faint flex items-center gap-2">
+                  <Heart className="w-4 h-4 text-rose-500" />
+                  <span>{t('profile.spousesSection')}</span>
+                </h2>
+                {canEdit && (user?.id_anggota === member.id_anggota || user?.role === 'Admin') && (
+                  <Link
+                    to={`/tambah?mode=pasangan&target=${member.id_anggota}`}
+                    className="min-h-ctl px-2.5 rounded-full bg-brand-100/80 dark:bg-brand-950/50 text-brand-800 dark:text-brand-200 text-xs font-bold inline-flex items-center gap-1 hover:bg-brand-100"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{t('profile.addSpouse')}</span>
+                  </Link>
                 )}
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
+              </div>
 
-      {/* Hapus Data (Khusus Admin) */}
-      {allowDelete && (
-        <div className="pt-2">
-          <button
-            type="button"
-            disabled={deleting || !isOnline}
-            onClick={handleDelete}
-            className="w-full min-h-cta px-4 py-2 rounded-full bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span>{t('profile.deleteBtn')}</span>
-          </button>
+              {!spouses.length ? (
+                <p className="text-sm text-muted">{t('profile.noSpouses')}</p>
+              ) : (
+                <div className="space-y-2">
+                  {spouses.map(({ pernikahan, anggota }) => (
+                    <Link
+                      key={pernikahan.id_pernikahan}
+                      to={`/profil/${anggota.id_anggota}`}
+                      className="min-h-touch p-2.5 rounded-tile bg-surface-2 hover:bg-[var(--well)] border border-line flex items-center justify-between gap-2 transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <MemberAvatar
+                          fileId={anggota.foto_file_id}
+                          name={anggota.nama_lengkap}
+                          gender={anggota.jenis_kelamin}
+                          isLiving={anggota.status_hidup}
+                          size="md"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-ink truncate">{anggota.nama_lengkap}</p>
+                          <p className="text-xs font-semibold text-muted font-mono">#{anggota.kode_unik}</p>
+                        </div>
+                      </div>
+                      <span className="shrink-0 px-2 py-0.5 rounded-full bg-surface border border-line text-[0.6875rem] font-bold text-ink">
+                        {pernikahan.status_pernikahan}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+
+          {/* Anak */}
+          <section className="bg-surface rounded-card border border-line p-4 shadow-card flex-1 flex flex-col gap-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-faint flex items-center gap-2">
+                <Users className="w-4 h-4 text-brand-700 dark:text-brand-300" />
+                <span>
+                  {t('profile.childrenSection')} ({children.length})
+                </span>
+              </h2>
+              {canEdit && (user?.id_anggota === member.id_anggota || user?.role === 'Admin') && (
+                <Link
+                  to={`/tambah?mode=anak&target=${member.id_anggota}`}
+                  className="min-h-ctl px-3 rounded-full bg-brand-100/80 dark:bg-brand-950/50 text-brand-800 dark:text-brand-200 text-xs font-bold inline-flex items-center gap-1 hover:bg-brand-100"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{t('profile.addChild')}</span>
+                </Link>
+              )}
+            </div>
+
+            {!children.length ? (
+              <p className="text-sm text-muted">{t('profile.noChildren')}</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {children.map((c) => (
+                  <Link
+                    key={c.id_anggota}
+                    to={`/profil/${c.id_anggota}`}
+                    className="min-h-touch p-2.5 rounded-tile bg-surface-2 hover:bg-[var(--well)] border border-line flex items-center justify-between gap-2 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <MemberAvatar
+                        fileId={c.foto_file_id}
+                        name={c.nama_lengkap}
+                        gender={c.jenis_kelamin}
+                        isLiving={c.status_hidup}
+                        size="md"
+                      />
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-ink truncate">{c.nama_lengkap}</p>
+                        <p className="text-xs font-semibold text-muted">
+                          {c.urutan_anak ? t('profile.childOrder', { n: c.urutan_anak }) : `#${c.kode_unik}`}
+                        </p>
+                      </div>
+                    </div>
+                    {c.status_anak === 'Angkat' && (
+                      <span className="shrink-0 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 text-[0.65rem] font-bold">
+                        {t('common.adopted')}
+                      </span>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
         </div>
-      )}
+      </div>
     </div>
   );
 }
