@@ -699,316 +699,366 @@ export function AdminPanelPage() {
         </div>
       )}
 
-      {/* TAB 3: PENGATURAN & WA GATEWAY */}
+      {/* TAB 3: PENGATURAN KELUARGA, FONT & WA GATEWAY (Split-View Grid Desktop) */}
       {tab === 'wa' && (
-        <div key="tab-wa" className="space-y-4 section-enter">
+        <div
+          key="tab-wa"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 items-stretch section-enter"
+        >
+          {/* Kolom Kiri: Pengaturan Keluarga + Font Aplikasi Global */}
           <form
+            id="admin-settings-form"
             onSubmit={handleSaveSettings}
-            className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3"
+            className="bg-surface rounded-card border border-line p-4 shadow-card flex flex-col justify-between gap-3 min-w-0"
           >
-            <h2 className="text-sm font-bold text-ink">{t('admin.settingsTitle')}</h2>
+            <div className="space-y-3 flex-1 flex flex-col">
+              <h2 className="text-sm font-bold text-ink">{t('admin.settingsTitle')}</h2>
 
-            <div>
-              <label className="block text-xs font-bold text-muted mb-1">{t('admin.familyNameLabel')}</label>
-              <input
-                type="text"
-                value={settingsForm.nama_keluarga}
-                onChange={(e) => setSettingsForm((s) => ({ ...s, nama_keluarga: e.target.value }))}
-                className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-muted mb-1">{t('admin.mainAncestorLabel')}</label>
-              <select
-                value={settingsForm.id_leluhur_utama}
-                onChange={(e) => setSettingsForm((s) => ({ ...s, id_leluhur_utama: e.target.value }))}
-                className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
-              >
-                <option value="">{t('admin.noLinkOption')}</option>
-                {activeMembers.map((a) => (
-                  <option key={a.id_anggota} value={a.id_anggota}>
-                    {a.nama_lengkap} (#{a.kode_unik})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Pengaturan Tipografi / Font Aplikasi Global */}
-            <div className="p-3.5 rounded-tile bg-surface-2 border border-line space-y-3">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2 text-xs font-bold text-ink">
-                    <Type className="w-4 h-4 text-brand-700 dark:text-brand-300 shrink-0" aria-hidden="true" />
-                    <span>{t('admin.fontSectionTitle')}</span>
-                  </div>
-                  <p className="text-xs text-muted">{t('admin.fontSectionHint')}</p>
-                </div>
-
-                <SegmentedPillControl
-                  ariaLabel={t('admin.fontSectionTitle')}
-                  value={fontMode}
-                  onChange={(mode) => {
-                    setFontMode(mode);
-                    if (mode === 'preset') {
-                      const candidate = sanitizeFontName(settingsForm.font_family);
-                      const nextPreset = isPresetFont(candidate)
-                        ? resolveFontFamily(candidate)
-                        : DEFAULT_FONT_FAMILY;
-                      setSettingsForm((s) => ({ ...s, font_family: nextPreset }));
-                    } else {
-                      setCustomFontInput((prev) =>
-                        prev || (isPresetFont(settingsForm.font_family) ? '' : settingsForm.font_family)
-                      );
-                    }
-                  }}
-                  tone="brand"
-                  className="bg-surface"
-                  options={[
-                    { value: 'preset', label: t('admin.fontModePreset') },
-                    { value: 'custom', label: t('admin.fontModeCustom') }
-                  ]}
-                />
-              </div>
-
-              {fontMode === 'preset' ? (
-                <div
-                  key="font-preset"
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 section-enter"
-                >
-                  {FONT_PRESETS.map((preset) => {
-                    const selected =
-                      sanitizeFontName(settingsForm.font_family).toLowerCase() === preset.name.toLowerCase();
-                    const displayLabel =
-                      preset.name === SYSTEM_FONT_VALUE ? t('admin.fontSystemName') : preset.name;
-                    const tagText = lang === 'en' ? preset.tagEn : preset.tagId;
-                    return (
-                      <button
-                        key={preset.name}
-                        type="button"
-                        onClick={() => setSettingsForm((s) => ({ ...s, font_family: preset.name }))}
-                        aria-pressed={selected}
-                        className={`text-left px-3 py-2.5 rounded-tile border transition-colors flex items-center justify-between gap-2 ${
-                          selected
-                            ? 'bg-brand-50/90 dark:bg-brand-950/50 border-brand-600 dark:border-brand-400 text-ink shadow-sm'
-                            : 'bg-surface border-line hover:bg-[var(--well)] text-ink'
-                        }`}
-                      >
-                        <div className="min-w-0">
-                          <p className="text-sm font-bold truncate">{displayLabel}</p>
-                          <p className="text-[0.6875rem] font-medium text-muted truncate">
-                            {preset.designer} · {tagText}
-                          </p>
-                        </div>
-                        {selected && (
-                          <span className="w-5 h-5 rounded-full bg-brand-700 text-white flex items-center justify-center shrink-0">
-                            <Check className="w-3 h-3" aria-hidden="true" />
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div key="font-custom" className="space-y-1.5 section-enter">
-                  <label htmlFor="admin-custom-font" className="block text-xs font-bold text-muted">
-                    {t('admin.fontCustomLabel')}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="min-w-0">
+                  <label className="block text-xs font-bold text-muted mb-1">
+                    {t('admin.familyNameLabel')}
                   </label>
                   <input
-                    id="admin-custom-font"
                     type="text"
-                    maxLength={50}
-                    value={customFontInput}
-                    onChange={(e) => setCustomFontInput(e.target.value)}
-                    placeholder={t('admin.fontCustomPlaceholder')}
-                    className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface text-ink placeholder:text-faint text-sm font-semibold"
+                    value={settingsForm.nama_keluarga}
+                    onChange={(e) => setSettingsForm((s) => ({ ...s, nama_keluarga: e.target.value }))}
+                    className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
                   />
-                  <p
-                    className={`text-xs font-medium ${
-                      customFontInput.trim() && !sanitizeFontName(customFontInput)
-                        ? 'text-rose-700 dark:text-rose-300'
-                        : 'text-muted'
-                    }`}
-                  >
-                    {customFontInput.trim() && !sanitizeFontName(customFontInput)
-                      ? t('admin.fontInvalidFormat')
-                      : t('admin.fontCustomHint')}
-                  </p>
                 </div>
-              )}
 
-              {(() => {
-                const previewTarget = previewFontName || fontFamily;
-                const isActiveFont = resolveFontFamily(previewTarget) === fontFamily;
-                const previewLabel =
-                  previewTarget === SYSTEM_FONT_VALUE ? t('admin.fontSystemName') : previewTarget;
-                return (
-                  <div
-                    className="p-3 rounded-tile bg-surface border border-line space-y-1"
-                    style={{ fontFamily: buildCssFontStack(previewTarget) }}
+                <div className="min-w-0">
+                  <label className="block text-xs font-bold text-muted mb-1">
+                    {t('admin.mainAncestorLabel')}
+                  </label>
+                  <select
+                    value={settingsForm.id_leluhur_utama}
+                    onChange={(e) =>
+                      setSettingsForm((s) => ({ ...s, id_leluhur_utama: e.target.value }))
+                    }
+                    className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
                   >
-                    <div className="flex flex-wrap items-center justify-between gap-2 text-[0.6875rem]">
-                      <span className="font-bold uppercase tracking-wider text-faint">
-                        {t('admin.fontPreviewLabel')} · {previewLabel}
-                      </span>
-                      <span
-                        className={`px-2 py-0.5 rounded-full font-bold ${
-                          isActiveFont
-                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-                            : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200'
+                    <option value="">{t('admin.noLinkOption')}</option>
+                    {activeMembers.map((a) => (
+                      <option key={a.id_anggota} value={a.id_anggota}>
+                        {a.nama_lengkap} (#{a.kode_unik})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Pengaturan Tipografi / Font Aplikasi Global */}
+              <div className="p-3 rounded-tile bg-surface-2 border border-line space-y-2.5 flex-1 flex flex-col justify-between">
+                <div className="space-y-2.5">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="space-y-0.5 min-w-0 flex-1">
+                      <div className="flex items-center gap-2 text-xs font-bold text-ink">
+                        <Type className="w-4 h-4 text-brand-700 dark:text-brand-300 shrink-0" aria-hidden="true" />
+                        <span>{t('admin.fontSectionTitle')}</span>
+                      </div>
+                      <p className="text-[0.6875rem] text-muted">{t('admin.fontSectionHint')}</p>
+                    </div>
+
+                    <SegmentedPillControl
+                      ariaLabel={t('admin.fontSectionTitle')}
+                      value={fontMode}
+                      onChange={(mode) => {
+                        setFontMode(mode);
+                        if (mode === 'preset') {
+                          const candidate = sanitizeFontName(settingsForm.font_family);
+                          const nextPreset = isPresetFont(candidate)
+                            ? resolveFontFamily(candidate)
+                            : DEFAULT_FONT_FAMILY;
+                          setSettingsForm((s) => ({ ...s, font_family: nextPreset }));
+                        } else {
+                          setCustomFontInput((prev) =>
+                            prev || (isPresetFont(settingsForm.font_family) ? '' : settingsForm.font_family)
+                          );
+                        }
+                      }}
+                      tone="brand"
+                      className="bg-surface"
+                      options={[
+                        { value: 'preset', label: t('admin.fontModePreset') },
+                        { value: 'custom', label: t('admin.fontModeCustom') }
+                      ]}
+                    />
+                  </div>
+
+                  {fontMode === 'preset' ? (
+                    <div
+                      key="font-preset"
+                      className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 section-enter"
+                    >
+                      {FONT_PRESETS.map((preset) => {
+                        const selected =
+                          sanitizeFontName(settingsForm.font_family).toLowerCase() ===
+                          preset.name.toLowerCase();
+                        const displayLabel =
+                          preset.name === SYSTEM_FONT_VALUE ? t('admin.fontSystemName') : preset.name;
+                        const tagText = lang === 'en' ? preset.tagEn : preset.tagId;
+                        return (
+                          <button
+                            key={preset.name}
+                            type="button"
+                            onClick={() => setSettingsForm((s) => ({ ...s, font_family: preset.name }))}
+                            aria-pressed={selected}
+                            className={`text-left px-2.5 py-2 rounded-tile border transition-colors flex items-center justify-between gap-2 ${
+                              selected
+                                ? 'bg-brand-50/90 dark:bg-brand-950/50 border-brand-600 dark:border-brand-400 text-ink shadow-sm'
+                                : 'bg-surface border-line hover:bg-[var(--well)] text-ink'
+                            }`}
+                          >
+                            <div className="min-w-0">
+                              <p className="text-xs sm:text-sm font-bold truncate leading-snug">
+                                {displayLabel}
+                              </p>
+                              <p className="text-[0.65rem] font-medium text-muted truncate">
+                                {preset.designer} · {tagText}
+                              </p>
+                            </div>
+                            {selected && (
+                              <span className="w-4 h-4 rounded-full bg-brand-700 text-white flex items-center justify-center shrink-0">
+                                <Check className="w-2.5 h-2.5" aria-hidden="true" />
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div key="font-custom" className="space-y-1.5 section-enter">
+                      <label htmlFor="admin-custom-font" className="block text-xs font-bold text-muted">
+                        {t('admin.fontCustomLabel')}
+                      </label>
+                      <input
+                        id="admin-custom-font"
+                        type="text"
+                        maxLength={50}
+                        value={customFontInput}
+                        onChange={(e) => setCustomFontInput(e.target.value)}
+                        placeholder={t('admin.fontCustomPlaceholder')}
+                        className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface text-ink placeholder:text-faint text-sm font-semibold"
+                      />
+                      <p
+                        className={`text-xs font-medium ${
+                          customFontInput.trim() && !sanitizeFontName(customFontInput)
+                            ? 'text-rose-700 dark:text-rose-300'
+                            : 'text-muted'
                         }`}
                       >
-                        {isActiveFont ? t('admin.fontPreviewActive') : t('admin.fontPreviewUnsaved')}
-                      </span>
+                        {customFontInput.trim() && !sanitizeFontName(customFontInput)
+                          ? t('admin.fontInvalidFormat')
+                          : t('admin.fontCustomHint')}
+                      </p>
                     </div>
-                    <p className="text-base font-bold text-ink truncate">
-                      {settingsForm.nama_keluarga || t('app.name')}
-                    </p>
-                    <p className="text-sm font-medium text-muted">{t('admin.fontPreviewSample')}</p>
-                  </div>
-                );
-              })()}
-            </div>
+                  )}
+                </div>
 
-            <label className="min-h-touch flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settingsForm.wa_aktif === 'true'}
-                onChange={(e) =>
-                  setSettingsForm((s) => ({ ...s, wa_aktif: e.target.checked ? 'true' : 'false' }))
-                }
-                className="w-5 h-5 rounded text-brand-700"
-              />
-              <span className="text-sm font-bold text-ink">{t('admin.waActiveLabel')}</span>
-            </label>
-
-            <div className="flex flex-wrap gap-3">
-              <div className="w-40">
-                <label className="block text-xs font-bold text-muted mb-1">{t('admin.waProviderLabel')}</label>
-                <select
-                  value={settingsForm.wa_provider}
-                  onChange={(e) => setSettingsForm((s) => ({ ...s, wa_provider: e.target.value }))}
-                  className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
-                >
-                  <option value="fonnte">Fonnte</option>
-                  <option value="wablas">Wablas</option>
-                  <option value="generic">Generic JSON</option>
-                </select>
+                {(() => {
+                  const previewTarget = previewFontName || fontFamily;
+                  const isActiveFont = resolveFontFamily(previewTarget) === fontFamily;
+                  const previewLabel =
+                    previewTarget === SYSTEM_FONT_VALUE ? t('admin.fontSystemName') : previewTarget;
+                  return (
+                    <div
+                      className="p-2.5 rounded-tile bg-surface border border-line space-y-0.5"
+                      style={{ fontFamily: buildCssFontStack(previewTarget) }}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-[0.6875rem]">
+                        <span className="font-bold uppercase tracking-wider text-faint">
+                          {t('admin.fontPreviewLabel')} · {previewLabel}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full font-bold ${
+                            isActiveFont
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                              : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200'
+                          }`}
+                        >
+                          {isActiveFont ? t('admin.fontPreviewActive') : t('admin.fontPreviewUnsaved')}
+                        </span>
+                      </div>
+                      <p className="text-sm sm:text-base font-bold text-ink truncate">
+                        {settingsForm.nama_keluarga || t('app.name')}
+                      </p>
+                      <p className="text-xs sm:text-sm font-medium text-muted truncate">
+                        {t('admin.fontPreviewSample')}
+                      </p>
+                    </div>
+                  );
+                })()}
               </div>
-
-              <div className="w-36">
-                <label className="block text-xs font-bold text-muted mb-1">{t('admin.waHourLabel')}</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="23"
-                  value={settingsForm.wa_jam_trigger}
-                  onChange={(e) => setSettingsForm((s) => ({ ...s, wa_jam_trigger: e.target.value }))}
-                  className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-muted mb-1">{t('admin.waUrlLabel')}</label>
-              <input
-                type="url"
-                value={settingsForm.wa_gateway_url}
-                onChange={(e) => setSettingsForm((s) => ({ ...s, wa_gateway_url: e.target.value }))}
-                placeholder="https://api.fonnte.com/send"
-                className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-muted mb-1">{t('admin.waGroupLabel')}</label>
-              <input
-                type="text"
-                value={settingsForm.wa_group_id}
-                onChange={(e) => setSettingsForm((s) => ({ ...s, wa_group_id: e.target.value }))}
-                placeholder="120363000000@g.us"
-                className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-muted mb-1">{t('admin.waTemplateLabel')}</label>
-              <textarea
-                rows={4}
-                value={settingsForm.wa_template}
-                onChange={(e) => setSettingsForm((s) => ({ ...s, wa_template: e.target.value }))}
-                className="w-full p-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-medium"
-              />
-              <p className="text-xs text-muted mt-1">{t('admin.waTemplateHint')}</p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="submit"
-                disabled={savingSettings || !isOnline}
-                className="flex-1 min-w-[10rem] min-h-touch px-4 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white text-sm font-bold shadow-sm"
-              >
-                {savingSettings ? t('common.saving') : t('admin.saveSettingsBtn')}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleWaTest}
-                disabled={!isOnline}
-                className="min-h-touch px-4 rounded-full bg-wa hover:bg-wa-hover disabled:opacity-50 text-white text-sm font-bold inline-flex items-center gap-2 shadow-sm transition-colors"
-              >
-                <Send className="w-4 h-4" />
-                <span>{t('admin.waTestBtn')}</span>
-              </button>
             </div>
           </form>
 
-          {/* Token Rahasia di PropertiesService */}
-          <div className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-sm font-bold text-ink">{t('admin.waTokenTitle')}</h2>
-              <span
-                className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                  settingsForm.wa_token_configured
-                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-                    : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200'
-                }`}
-              >
-                {settingsForm.wa_token_configured ? t('admin.tokenReady') : t('admin.tokenMissing')}
-              </span>
-            </div>
+          {/* Kolom Kanan: Konfigurasi WA Gateway + Token Rahasia */}
+          <div className="flex flex-col gap-3.5 min-w-0">
+            <section className="bg-surface rounded-card border border-line p-4 shadow-card flex-1 flex flex-col justify-between gap-3">
+              <div className="space-y-2.5">
+                <label className="min-h-ctl flex items-center gap-2.5 cursor-pointer">
+                  <input
+                    form="admin-settings-form"
+                    type="checkbox"
+                    checked={settingsForm.wa_aktif === 'true'}
+                    onChange={(e) =>
+                      setSettingsForm((s) => ({ ...s, wa_aktif: e.target.checked ? 'true' : 'false' }))
+                    }
+                    className="w-4 h-4 rounded text-brand-700"
+                  />
+                  <span className="text-sm font-bold text-ink">{t('admin.waActiveLabel')}</span>
+                </label>
 
-            <p className="text-xs text-muted">{t('admin.waTokenHint')}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="min-w-0">
+                    <label className="block text-xs font-bold text-muted mb-1">
+                      {t('admin.waProviderLabel')}
+                    </label>
+                    <select
+                      form="admin-settings-form"
+                      value={settingsForm.wa_provider}
+                      onChange={(e) => setSettingsForm((s) => ({ ...s, wa_provider: e.target.value }))}
+                      className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
+                    >
+                      <option value="fonnte">Fonnte</option>
+                      <option value="wablas">Wablas</option>
+                      <option value="generic">Generic JSON</option>
+                    </select>
+                  </div>
 
-            <input
-              type="password"
-              value={waTokenInput}
-              onChange={(e) => setWaTokenInput(e.target.value)}
-              placeholder={t('admin.waTokenPlaceholder')}
-              className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
-            />
+                  <div className="min-w-0">
+                    <label className="block text-xs font-bold text-muted mb-1">
+                      {t('admin.waHourLabel')}
+                    </label>
+                    <input
+                      form="admin-settings-form"
+                      type="number"
+                      min="0"
+                      max="23"
+                      value={settingsForm.wa_jam_trigger}
+                      onChange={(e) => setSettingsForm((s) => ({ ...s, wa_jam_trigger: e.target.value }))}
+                      className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
+                    />
+                  </div>
+                </div>
 
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={handleSaveWaToken}
-                disabled={!isOnline}
-                className="flex-1 min-w-[9rem] min-h-touch px-4 rounded-full bg-side text-[var(--on-side)] hover:opacity-95 text-xs font-bold"
-              >
-                {t('admin.saveTokenBtn')}
-              </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="min-w-0">
+                    <label className="block text-xs font-bold text-muted mb-1">
+                      {t('admin.waUrlLabel')}
+                    </label>
+                    <input
+                      form="admin-settings-form"
+                      type="url"
+                      value={settingsForm.wa_gateway_url}
+                      onChange={(e) =>
+                        setSettingsForm((s) => ({ ...s, wa_gateway_url: e.target.value }))
+                      }
+                      placeholder="https://api.fonnte.com/send"
+                      className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
+                    />
+                  </div>
 
-              {settingsForm.wa_token_configured && (
+                  <div className="min-w-0">
+                    <label className="block text-xs font-bold text-muted mb-1">
+                      {t('admin.waGroupLabel')}
+                    </label>
+                    <input
+                      form="admin-settings-form"
+                      type="text"
+                      value={settingsForm.wa_group_id}
+                      onChange={(e) => setSettingsForm((s) => ({ ...s, wa_group_id: e.target.value }))}
+                      placeholder="120363000000@g.us"
+                      className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-muted mb-1">
+                    {t('admin.waTemplateLabel')}
+                  </label>
+                  <textarea
+                    form="admin-settings-form"
+                    rows={3}
+                    value={settingsForm.wa_template}
+                    onChange={(e) => setSettingsForm((s) => ({ ...s, wa_template: e.target.value }))}
+                    className="w-full p-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-medium"
+                  />
+                  <p className="text-[0.6875rem] text-muted mt-1">{t('admin.waTemplateHint')}</p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-1">
+                <button
+                  type="submit"
+                  form="admin-settings-form"
+                  disabled={savingSettings || !isOnline}
+                  className="flex-1 min-w-[9rem] min-h-ctl px-4 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white text-xs sm:text-sm font-bold shadow-sm"
+                >
+                  {savingSettings ? t('common.saving') : t('admin.saveSettingsBtn')}
+                </button>
+
                 <button
                   type="button"
-                  onClick={handleClearWaToken}
+                  onClick={handleWaTest}
                   disabled={!isOnline}
-                  className="min-h-touch px-4 rounded-full border border-rose-300/80 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-bold"
+                  className="min-h-ctl px-3.5 rounded-full bg-wa hover:bg-wa-hover disabled:opacity-50 text-white text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-1.5 shadow-sm transition-colors"
                 >
-                  {t('admin.clearTokenBtn')}
+                  <Send className="w-3.5 h-3.5" />
+                  <span>{t('admin.waTestBtn')}</span>
                 </button>
-              )}
-            </div>
+              </div>
+            </section>
+
+            {/* Token Rahasia di PropertiesService */}
+            <section className="bg-surface rounded-card border border-line p-4 shadow-card space-y-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-sm font-bold text-ink">{t('admin.waTokenTitle')}</h2>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                    settingsForm.wa_token_configured
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                      : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200'
+                  }`}
+                >
+                  {settingsForm.wa_token_configured ? t('admin.tokenReady') : t('admin.tokenMissing')}
+                </span>
+              </div>
+
+              <p className="text-xs text-muted">{t('admin.waTokenHint')}</p>
+
+              <div className="flex flex-wrap gap-2">
+                <input
+                  type="password"
+                  value={waTokenInput}
+                  onChange={(e) => setWaTokenInput(e.target.value)}
+                  placeholder={t('admin.waTokenPlaceholder')}
+                  className="flex-1 min-w-[12rem] min-h-ctl px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
+                />
+
+                <button
+                  type="button"
+                  onClick={handleSaveWaToken}
+                  disabled={!isOnline}
+                  className="min-h-ctl px-3.5 rounded-full bg-side text-[var(--on-side)] hover:opacity-95 text-xs font-bold shrink-0"
+                >
+                  {t('admin.saveTokenBtn')}
+                </button>
+
+                {settingsForm.wa_token_configured && (
+                  <button
+                    type="button"
+                    onClick={handleClearWaToken}
+                    disabled={!isOnline}
+                    className="min-h-ctl px-3.5 rounded-full border border-rose-300/80 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-bold shrink-0"
+                  >
+                    {t('admin.clearTokenBtn')}
+                  </button>
+                )}
+              </div>
+            </section>
           </div>
         </div>
       )}
