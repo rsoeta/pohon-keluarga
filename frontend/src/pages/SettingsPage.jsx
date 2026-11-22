@@ -129,26 +129,45 @@ export function SettingsPage() {
     : t('sync.neverSynced');
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink">{t('settings.title')}</h1>
-
-      {/* Kartu Akun */}
-      <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-12 h-12 shrink-0 rounded-2xl bg-brand-100 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300 flex items-center justify-center">
-              <UserCheck className="w-6 h-6" aria-hidden="true" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-base font-bold text-ink truncate">@{user?.username}</p>
-              <p className="text-xs font-semibold text-muted truncate">
-                {t('settings.linkedProfile')}:{' '}
-                <span className="text-ink">
-                  {linkedAnggota?.nama_lengkap || t('settings.noLinkedProfile')}
-                </span>
-              </p>
-            </div>
+    <div className="flex-1 flex flex-col gap-3.5">
+      {/* Bar Atas Kompak: Judul + Identitas Akun + Status PWA */}
+      <section className="bg-surface rounded-card border border-line px-4 py-3 sm:px-5 shadow-card flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 shrink-0 rounded-xl bg-brand-100 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300 flex items-center justify-center">
+            <UserCheck className="w-5 h-5" aria-hidden="true" />
           </div>
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-ink leading-tight truncate">
+              {t('settings.title')}
+            </h1>
+            <p className="text-xs font-semibold text-muted truncate">
+              @{user?.username} · {t('settings.linkedProfile')}:{' '}
+              <span className="text-ink">
+                {linkedAnggota?.nama_lengkap || t('settings.noLinkedProfile')}
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {canInstall ? (
+            <button
+              type="button"
+              onClick={promptInstall}
+              className="min-h-ctl px-3 rounded-full bg-brand-50 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-800 text-brand-800 dark:text-brand-200 font-bold text-xs inline-flex items-center gap-1.5 hover:bg-brand-100/70 transition-colors"
+            >
+              <Download className="w-3.5 h-3.5 shrink-0" />
+              <span>{t('pwa.installBtn')}</span>
+            </button>
+          ) : isStandalone ? (
+            <span
+              title={t('pwa.installedHint')}
+              className="min-h-ctl px-2.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/70 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400 text-xs font-semibold inline-flex items-center gap-1.5"
+            >
+              <Smartphone className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">{t('pwa.installedHint')}</span>
+            </span>
+          ) : null}
 
           <span
             className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
@@ -163,266 +182,263 @@ export function SettingsPage() {
         </div>
       </section>
 
-      {/* Preferensi Bahasa, Tema & PWA */}
-      <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-4">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-faint">
-          {t('settings.preferencesTitle')}
-        </h2>
+      {/* Split-View Grid Desktop (2 Kolom Seimbang, Bebas Vertical Scroll) */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-3.5 items-stretch">
+        {/* Kolom Kiri: Preferensi Tampilan + Sinkronisasi & Cache Lokal */}
+        <div className="flex flex-col gap-3.5 min-w-0">
+          <section className="bg-surface rounded-card border border-line p-4 shadow-card space-y-2.5">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-faint">
+              {t('settings.preferencesTitle')}
+            </h2>
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <Globe className="w-5 h-5 text-brand-700 dark:text-brand-300 shrink-0" />
-            <span className="text-sm font-bold text-ink">{t('settings.languageLabel')}</span>
-          </div>
-          <SegmentedPillControl
-            ariaLabel={t('settings.languageLabel')}
-            value={lang}
-            onChange={setLang}
-            tone="brand"
-            className="bg-surface-2"
-            buttonClassName="px-4 uppercase"
-            options={[
-              { value: 'id', label: 'ID' },
-              { value: 'en', label: 'EN' }
-            ]}
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-line">
-          <div className="flex items-center gap-2.5">
-            {isDark ? (
-              <Moon className="w-5 h-5 text-amber-400 shrink-0" />
-            ) : (
-              <Sun className="w-5 h-5 text-amber-500 shrink-0" />
-            )}
-            <span className="text-sm font-bold text-ink">{t('settings.themeLabel')}</span>
-          </div>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="min-h-ctl px-3.5 rounded-full border border-line bg-surface-2 text-xs sm:text-sm font-bold text-ink flex items-center gap-2 hover:bg-[var(--well)] transition-colors"
-          >
-            {isDark ? <Moon className="w-4 h-4 text-amber-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
-            <span>{isDark ? t('theme.dark') : t('theme.light')}</span>
-          </button>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-line">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <Type className="w-5 h-5 text-brand-700 dark:text-brand-300 shrink-0" aria-hidden="true" />
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-ink">{t('settings.fontLabel')}</p>
-              {!isAdmin && (
-                <p className="text-[0.6875rem] font-medium text-muted">{t('settings.fontManagedByAdmin')}</p>
-              )}
+            <div className="flex flex-wrap items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2.5">
+                <Globe className="w-4 h-4 text-brand-700 dark:text-brand-300 shrink-0" />
+                <span className="text-sm font-bold text-ink">{t('settings.languageLabel')}</span>
+              </div>
+              <SegmentedPillControl
+                ariaLabel={t('settings.languageLabel')}
+                value={lang}
+                onChange={setLang}
+                tone="brand"
+                className="bg-surface-2"
+                buttonClassName="px-4 uppercase"
+                options={[
+                  { value: 'id', label: 'ID' },
+                  { value: 'en', label: 'EN' }
+                ]}
+              />
             </div>
-          </div>
 
-          {isAdmin ? (
-            <Link
-              to="/admin?tab=settings"
-              className="min-h-ctl px-3.5 rounded-full border border-line bg-surface-2 text-xs sm:text-sm font-bold text-ink inline-flex items-center gap-1.5 hover:bg-[var(--well)] transition-colors max-w-full"
-            >
-              <span className="truncate max-w-[10rem]">
-                {fontFamily === SYSTEM_FONT_VALUE ? t('admin.fontSystemName') : fontFamily}
-              </span>
-              <span className="text-brand-700 dark:text-brand-300">· {t('settings.manageFontBtn')}</span>
-              <ChevronRight className="w-4 h-4 text-faint shrink-0" />
-            </Link>
-          ) : (
-            <span
-              title={t('settings.fontManagedByAdmin')}
-              className="min-h-ctl px-3.5 rounded-full border border-line bg-surface-2 text-xs sm:text-sm font-bold text-muted inline-flex items-center max-w-full truncate"
-            >
-              {fontFamily === SYSTEM_FONT_VALUE ? t('admin.fontSystemName') : fontFamily}
-            </span>
-          )}
-        </div>
-
-        {(canInstall || isStandalone) && (
-          <div className="pt-2 border-t border-line">
-            {canInstall ? (
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-line">
+              <div className="flex items-center gap-2.5">
+                {isDark ? (
+                  <Moon className="w-4 h-4 text-amber-400 shrink-0" />
+                ) : (
+                  <Sun className="w-4 h-4 text-amber-500 shrink-0" />
+                )}
+                <span className="text-sm font-bold text-ink">{t('settings.themeLabel')}</span>
+              </div>
               <button
                 type="button"
-                onClick={promptInstall}
-                className="w-full min-h-touch px-4 py-2.5 rounded-full bg-brand-50 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-800 text-brand-800 dark:text-brand-200 font-bold text-sm flex items-center justify-center gap-2 hover:bg-brand-100/70"
+                onClick={toggleTheme}
+                className="min-h-ctl px-3.5 rounded-full border border-line bg-surface-2 text-xs sm:text-sm font-bold text-ink flex items-center gap-2 hover:bg-[var(--well)] transition-colors"
               >
-                <Download className="w-4 h-4 shrink-0" />
-                <span>{t('pwa.installBtn')}</span>
+                {isDark ? <Moon className="w-4 h-4 text-amber-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
+                <span>{isDark ? t('theme.dark') : t('theme.light')}</span>
               </button>
-            ) : (
-              <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                <Smartphone className="w-4 h-4 shrink-0" />
-                <span>{t('pwa.installedHint')}</span>
-              </div>
-            )}
-          </div>
-        )}
-      </section>
-
-      {/* Sinkronisasi & Cache Lokal (Dexie.js) */}
-      <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3">
-        <div className="flex items-center gap-2">
-          <Database className="w-5 h-5 text-brand-700 dark:text-brand-300" />
-          <h2 className="text-xs font-bold uppercase tracking-wider text-faint">
-            {t('settings.dataTitle')}
-          </h2>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          <div className="flex-1 min-w-[8rem] p-3 rounded-tile bg-surface-2 border border-line">
-            <p className="text-xs font-semibold text-muted">{t('sync.cachedMembers')}</p>
-            <p className="text-xl font-bold text-ink">{anggotaCount}</p>
-          </div>
-          <div className="flex-1 min-w-[8rem] p-3 rounded-tile bg-surface-2 border border-line">
-            <p className="text-xs font-semibold text-muted">{t('sync.cachedMarriages')}</p>
-            <p className="text-xl font-bold text-ink">{pernikahanCount}</p>
-          </div>
-        </div>
-
-        <p className="text-xs font-semibold text-muted">
-          {t('sync.lastSync')}: <span className="text-ink">{formattedSync}</span>
-        </p>
-
-        <div className="flex flex-wrap gap-2 pt-1">
-          <button
-            type="button"
-            disabled={syncing || !isOnline}
-            onClick={() => handleSync(false)}
-            className="flex-1 min-w-[9rem] min-h-cta px-4 py-2 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors shadow-sm"
-          >
-            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-            <span>{syncing ? t('sync.syncing') : t('sync.syncNow')}</span>
-          </button>
-
-          <button
-            type="button"
-            disabled={syncing || !isOnline}
-            onClick={() => handleSync(true)}
-            className="flex-1 min-w-[9rem] min-h-cta px-4 py-2 rounded-full border border-line bg-surface-2 text-ink hover:bg-[var(--well)] disabled:opacity-50 font-bold text-sm transition-colors"
-          >
-            {t('sync.fullReload')}
-          </button>
-        </div>
-      </section>
-
-      {/* Khusus Admin: Panel Administrator & Impor GEDCOM */}
-      {isAdmin && (
-        <section className="bg-surface rounded-card border border-heritage-200 dark:border-heritage-900/60 p-4 sm:p-5 shadow-card space-y-2.5">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-heritage-700 dark:text-heritage-400">
-            {t('settings.adminSectionTitle')}
-          </h2>
-
-          <Link
-            to="/admin"
-            className="min-h-touch flex items-center justify-between gap-3 p-3.5 rounded-tile bg-heritage-50/70 dark:bg-heritage-950/30 hover:bg-heritage-100/70 dark:hover:bg-heritage-900/30 border border-heritage-200/60 dark:border-heritage-900/40 transition-colors"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <ShieldCheck className="w-5 h-5 text-heritage-700 dark:text-heritage-400 shrink-0" />
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-ink">{t('settings.adminPanelBtn')}</p>
-                <p className="text-xs text-muted">{t('settings.adminPanelDesc')}</p>
-              </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-faint shrink-0" />
-          </Link>
 
-          <Link
-            to="/admin/gedcom"
-            className="min-h-touch flex items-center justify-between gap-3 p-3.5 rounded-tile bg-surface-2 hover:bg-[var(--well)] border border-line transition-colors"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <FileUp className="w-5 h-5 text-brand-700 dark:text-brand-300 shrink-0" />
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-ink">{t('settings.gedcomImportBtn')}</p>
-                <p className="text-xs text-muted">{t('settings.gedcomImportDesc')}</p>
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-line">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Type className="w-4 h-4 text-brand-700 dark:text-brand-300 shrink-0" aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-ink">{t('settings.fontLabel')}</p>
+                  {!isAdmin && (
+                    <p className="text-[0.6875rem] font-medium text-muted">{t('settings.fontManagedByAdmin')}</p>
+                  )}
+                </div>
               </div>
+
+              {isAdmin ? (
+                <Link
+                  to="/admin?tab=settings"
+                  className="min-h-ctl px-3.5 rounded-full border border-line bg-surface-2 text-xs sm:text-sm font-bold text-ink inline-flex items-center gap-1.5 hover:bg-[var(--well)] transition-colors max-w-full"
+                >
+                  <span className="truncate max-w-[10rem]">
+                    {fontFamily === SYSTEM_FONT_VALUE ? t('admin.fontSystemName') : fontFamily}
+                  </span>
+                  <span className="text-brand-700 dark:text-brand-300">· {t('settings.manageFontBtn')}</span>
+                  <ChevronRight className="w-4 h-4 text-faint shrink-0" />
+                </Link>
+              ) : (
+                <span
+                  title={t('settings.fontManagedByAdmin')}
+                  className="min-h-ctl px-3.5 rounded-full border border-line bg-surface-2 text-xs sm:text-sm font-bold text-muted inline-flex items-center max-w-full truncate"
+                >
+                  {fontFamily === SYSTEM_FONT_VALUE ? t('admin.fontSystemName') : fontFamily}
+                </span>
+              )}
             </div>
-            <ChevronRight className="w-5 h-5 text-faint shrink-0" />
-          </Link>
-        </section>
-      )}
+          </section>
 
-      {/* Keamanan Akun: Ubah Password & Logout */}
-      <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-4">
-        <div className="flex items-center gap-2">
-          <KeyRound className="w-5 h-5 text-brand-700 dark:text-brand-300" />
-          <h2 className="text-xs font-bold uppercase tracking-wider text-faint">
-            {t('settings.securityTitle')}
-          </h2>
+          <section className="bg-surface rounded-card border border-line p-4 shadow-card flex-1 flex flex-col justify-between gap-3">
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4 text-brand-700 dark:text-brand-300" />
+                <h2 className="text-xs font-bold uppercase tracking-wider text-faint">
+                  {t('settings.dataTitle')}
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="p-2.5 rounded-tile bg-surface-2 border border-line">
+                  <p className="text-xs font-semibold text-muted">{t('sync.cachedMembers')}</p>
+                  <p className="text-lg font-bold text-ink">{anggotaCount}</p>
+                </div>
+                <div className="p-2.5 rounded-tile bg-surface-2 border border-line">
+                  <p className="text-xs font-semibold text-muted">{t('sync.cachedMarriages')}</p>
+                  <p className="text-lg font-bold text-ink">{pernikahanCount}</p>
+                </div>
+              </div>
+
+              <p className="text-xs font-semibold text-muted">
+                {t('sync.lastSync')}: <span className="text-ink">{formattedSync}</span>
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                disabled={syncing || !isOnline}
+                onClick={() => handleSync(false)}
+                className="min-h-ctl px-3 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+              >
+                <RefreshCw className={`w-4 h-4 shrink-0 ${syncing ? 'animate-spin' : ''}`} />
+                <span className="truncate">{syncing ? t('sync.syncing') : t('sync.syncNow')}</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={syncing || !isOnline}
+                onClick={() => handleSync(true)}
+                className="min-h-ctl px-3 rounded-full border border-line bg-surface-2 text-ink hover:bg-[var(--well)] disabled:opacity-50 font-bold text-xs sm:text-sm truncate transition-colors"
+              >
+                {t('sync.fullReload')}
+              </button>
+            </div>
+          </section>
         </div>
 
-        <form onSubmit={handlePasswordSubmit} className="space-y-3" noValidate>
-          <p className="text-sm font-bold text-ink">{t('auth.changePasswordTitle')}</p>
+        {/* Kolom Kanan: Pintasan Administrator (jika Admin) + Keamanan Akun */}
+        <div className="flex flex-col gap-3.5 min-w-0">
+          {isAdmin && (
+            <section className="bg-surface rounded-card border border-heritage-200 dark:border-heritage-900/60 p-4 shadow-card space-y-2.5">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-heritage-700 dark:text-heritage-400">
+                {t('settings.adminSectionTitle')}
+              </h2>
 
-          <div className="relative flex items-center">
-            <input
-              type={showPw ? 'text' : 'password'}
-              autoComplete="current-password"
-              value={oldPw}
-              onChange={(e) => setOldPw(e.target.value)}
-              placeholder={t('auth.oldPassword')}
-              className="w-full min-h-touch pl-4 pr-14 py-2.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPw((v) => !v)}
-              aria-label={showPw ? t('auth.hidePassword') : t('auth.showPassword')}
-              className="absolute right-0 min-h-touch min-w-touch flex items-center justify-center text-muted hover:text-ink"
-            >
-              {showPw ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
-          </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Link
+                  to="/admin"
+                  className="min-h-touch flex items-center justify-between gap-2.5 p-3 rounded-tile bg-heritage-50/70 dark:bg-heritage-950/30 hover:bg-heritage-100/70 dark:hover:bg-heritage-900/30 border border-heritage-200/60 dark:border-heritage-900/40 transition-colors"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <ShieldCheck className="w-5 h-5 text-heritage-700 dark:text-heritage-400 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-ink truncate">{t('settings.adminPanelBtn')}</p>
+                      <p className="text-[0.6875rem] text-muted line-clamp-2">{t('settings.adminPanelDesc')}</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-faint shrink-0" />
+                </Link>
 
-          <input
-            type={showPw ? 'text' : 'password'}
-            autoComplete="new-password"
-            value={newPw}
-            onChange={(e) => setNewPw(e.target.value)}
-            placeholder={t('auth.newPassword')}
-            className="w-full min-h-touch px-4 py-2.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500"
-          />
+                <Link
+                  to="/admin/gedcom"
+                  className="min-h-touch flex items-center justify-between gap-2.5 p-3 rounded-tile bg-surface-2 hover:bg-[var(--well)] border border-line transition-colors"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <FileUp className="w-5 h-5 text-brand-700 dark:text-brand-300 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-ink truncate">{t('settings.gedcomImportBtn')}</p>
+                      <p className="text-[0.6875rem] text-muted line-clamp-2">{t('settings.gedcomImportDesc')}</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-faint shrink-0" />
+                </Link>
+              </div>
+            </section>
+          )}
 
-          <input
-            type={showPw ? 'text' : 'password'}
-            autoComplete="new-password"
-            value={confirmPw}
-            onChange={(e) => setConfirmPw(e.target.value)}
-            placeholder={t('auth.confirmPassword')}
-            className="w-full min-h-touch px-4 py-2.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500"
-          />
+          <section className="bg-surface rounded-card border border-line p-4 shadow-card flex-1 flex flex-col justify-between gap-3">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-brand-700 dark:text-brand-300" />
+                <h2 className="text-xs font-bold uppercase tracking-wider text-faint">
+                  {t('settings.securityTitle')}
+                </h2>
+              </div>
 
-          <p className="text-xs font-medium text-muted">{t('auth.passwordPolicyHint')}</p>
+              <form onSubmit={handlePasswordSubmit} className="space-y-2.5" noValidate>
+                <p className="text-sm font-bold text-ink">{t('auth.changePasswordTitle')}</p>
 
-          <button
-            type="submit"
-            disabled={savingPw || !isOnline}
-            className="w-full sm:w-auto min-h-cta px-5 py-2 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold text-sm transition-colors shadow-sm"
-          >
-            {savingPw ? t('common.loading') : t('settings.savePasswordBtn')}
-          </button>
-        </form>
+                <div className="relative flex items-center">
+                  <input
+                    type={showPw ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    value={oldPw}
+                    onChange={(e) => setOldPw(e.target.value)}
+                    placeholder={t('auth.oldPassword')}
+                    className="w-full min-h-touch pl-3.5 pr-12 py-2 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw((v) => !v)}
+                    aria-label={showPw ? t('auth.hidePassword') : t('auth.showPassword')}
+                    className="absolute right-0 min-h-touch min-w-touch flex items-center justify-center text-muted hover:text-ink"
+                  >
+                    {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
 
-        <div className="pt-4 border-t border-line flex flex-wrap gap-2.5">
-          <button
-            type="button"
-            onClick={handleLogoutAll}
-            disabled={!isOnline}
-            className="flex-1 min-w-[11rem] min-h-cta px-4 py-2 rounded-full border border-rose-300/80 dark:border-rose-900/60 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 disabled:opacity-50 font-bold text-sm transition-colors"
-          >
-            {t('settings.logoutAllBtn')}
-          </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <input
+                    type={showPw ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    value={newPw}
+                    onChange={(e) => setNewPw(e.target.value)}
+                    placeholder={t('auth.newPassword')}
+                    className="w-full min-h-touch px-3.5 py-2 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
 
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex-1 min-w-[9rem] min-h-cta px-4 py-2 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition-colors shadow-sm"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>{t('settings.logoutBtn')}</span>
-          </button>
+                  <input
+                    type={showPw ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    value={confirmPw}
+                    onChange={(e) => setConfirmPw(e.target.value)}
+                    placeholder={t('auth.confirmPassword')}
+                    className="w-full min-h-touch px-3.5 py-2 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
+                  <p className="text-xs font-medium text-muted flex-1 min-w-[12rem]">
+                    {t('auth.passwordPolicyHint')}
+                  </p>
+
+                  <button
+                    type="submit"
+                    disabled={savingPw || !isOnline}
+                    className="w-full sm:w-auto min-h-ctl px-4 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold text-xs sm:text-sm transition-colors shadow-sm"
+                  >
+                    {savingPw ? t('common.loading') : t('settings.savePasswordBtn')}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div className="pt-3 border-t border-line grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={handleLogoutAll}
+                disabled={!isOnline}
+                className="min-h-ctl px-3.5 rounded-full border border-rose-300/80 dark:border-rose-900/60 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 disabled:opacity-50 font-bold text-xs sm:text-sm transition-colors"
+              >
+                {t('settings.logoutAllBtn')}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="min-h-ctl px-3.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors shadow-sm"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>{t('settings.logoutBtn')}</span>
+              </button>
+            </div>
+          </section>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
