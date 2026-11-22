@@ -39,6 +39,24 @@ Dokumen ini berisi langkah lengkap untuk mendeploy backend **Google Apps Script 
 2. Di **Panel Administrator → Tab WA Gateway**, isi `URL Endpoint Gateway` (wajib `https://`), `ID Grup / Nomor Target WA`, jam trigger WIB (`0–23`), centang **Aktifkan Pengingat Ulang Tahun Harian WA**, simpan, lalu klik **Kirim Pesan Tes WA**.
 3. GAS akan memasang *Time-driven Trigger* harian untuk `runDailyBirthdayJob` secara otomatis (juga dapat dipastikan lewat menu **Triggers** di editor GAS).
 
+### 1.5 Konfigurasi Cloudflare Turnstile & Google OAuth (Whitelist Email)
+Aplikasi mendukung 2 opsi login:
+1. **Username & Password + Cloudflare Turnstile** (verifikasi bot server-side via `siteverify`).
+2. **Google OAuth (Google Identity Services)** yang **hanya mengizinkan email terdaftar** pada kolom `email` di `Data_Pengguna` dan/atau `Data_Anggota` aktif (bila email baru hanya ada di `Data_Anggota`, server otomatis membuatkan akun `User` tertaut saat login Google pertama).
+
+Langkah aktivasi:
+1. **Cloudflare Turnstile (untuk Login Password):**
+   - Buat widget **Turnstile** di dashboard Cloudflare untuk domain produksi (`www.altasim.studio-pasti.net`, plus `localhost` jika menguji lokal).
+   - Catat **Site Key** (`TURNSTILE_SITE_KEY`) dan **Secret Key** (`TURNSTILE_SECRET_KEY`).
+   - Simpan melalui **Panel Administrator → Tab Pengguna → Keamanan Login**, atau jalankan helper `setTurnstileKeys('SITE_KEY', 'SECRET_KEY', 'www.altasim.studio-pasti.net')` di editor GAS.
+   - *Catatan:* Selama `TURNSTILE_SECRET_KEY` belum diisi, login password tetap berjalan normal tanpa tantangan Turnstile.
+2. **Google OAuth (untuk Login Google):**
+   - Di Google Cloud Console → **APIs & Services → Credentials → Create OAuth client ID (Web application)**.
+   - Isi **Authorized JavaScript origins** dengan `https://www.altasim.studio-pasti.net` (dan `http://localhost:5173` bila menguji lokal).
+   - Salin **Client ID** (`*.apps.googleusercontent.com`) lalu simpan lewat **Panel Administrator → Tab Pengguna → Keamanan Login**, atau jalankan `setGoogleOAuthClientId('CLIENT_ID_ANDA')` di editor GAS.
+3. **Daftarkan Whitelist Email:**
+   - Tambahkan alamat Gmail/Google anggota keluarga pada kolom **Email Google** di **Panel Administrator → Pengguna** atau pada profil anggota di **Form Anggota** (`Data_Anggota.email`).
+
 ---
 
 ## Bagian 2 — Build & Hosting Frontend PWA (`www.altasim.studio-pasti.net`)
@@ -153,8 +171,9 @@ server {
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-Frame-Options "DENY" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Cross-Origin-Opener-Policy "same-origin-allow-popups" always;
     add_header Permissions-Policy "camera=(self), microphone=(), geolocation=()" always;
-    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://fonts.googleapis.com https://fonts.gstatic.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' https://challenges.cloudflare.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://fonts.googleapis.com https://fonts.gstatic.com https://challenges.cloudflare.com https://accounts.google.com; frame-src 'self' https://challenges.cloudflare.com https://accounts.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';" always;
 
     location ~* ^/(index\.html|sw\.js|manifest\.webmanifest)$ {
         add_header Cache-Control "no-cache, no-store, must-revalidate";

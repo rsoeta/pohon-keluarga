@@ -70,6 +70,11 @@ function cleanAnggotaInput_(input, isCreate) {
     if (wa === null) errors.push({ field: 'no_wa', rule: 'phone' });
     else out.no_wa = wa;
   }
+  if (has('email')) {
+    var em = normalizeEmail_(input.email);
+    if (em === null) errors.push({ field: 'email', rule: 'email' });
+    else out.email = em;
+  }
   LINEAGE_FIELDS.forEach(function (f) {
     if (has(f)) out[f] = optionalUuidField_(input, f, errors);
   });
@@ -138,6 +143,19 @@ function assertGenderChangeAllowed_(id, idx) {
   var referenced = idx.anggota.some(function (a) { return !a.is_deleted && (a.id_ayah === id || a.id_ibu === id); }) ||
     idx.pernikahan.some(function (m) { return !m.is_deleted && (m.id_suami === id || m.id_istri === id); });
   if (referenced) throw ERR.conflict('GENDER_LOCKED');
+}
+
+/** Memastikan email tidak bentrok dengan Data_Anggota aktif lain atau Data_Pengguna milik orang lain. */
+function assertEmailAvailableForAnggota_(email, selfAnggotaId, idx) {
+  if (!email) return;
+  var conflictAnggota = idx.anggota.some(function (a) {
+    return !a.is_deleted && a.id_anggota !== selfAnggotaId && normalizeEmail_(a.email) === email;
+  });
+  if (conflictAnggota) throw ERR.conflict('EMAIL_EXISTS');
+  var conflictUser = Db.rows(SHEET.PENGGUNA).some(function (u) {
+    return normalizeEmail_(u.email) === email && (!selfAnggotaId || (u.id_anggota || '') !== selfAnggotaId);
+  });
+  if (conflictUser) throw ERR.conflict('EMAIL_EXISTS');
 }
 
 /* =========================================================================
@@ -244,6 +262,7 @@ function Anggota_create_(ctx, p) {
     status_anak: clean.status_anak || 'Kandung',
     domisili: clean.domisili || '',
     no_wa: clean.no_wa || '',
+    email: clean.email || '',
     foto_file_id: '',
     id_ayah: clean.id_ayah || '',
     id_ibu: clean.id_ibu || '',
@@ -255,6 +274,7 @@ function Anggota_create_(ctx, p) {
   // Pra-cek RBAC sebelum resolveLineage_/cleanRelasiPasangan_ agar percobaan ilegal
   // selalu membalas 403 Forbidden generik tanpa membocorkan info UUID profil lain.
   if (!rbacIsAdmin_(ctx)) {
+    if (clean.email) throw ERR.forbidden();
     var me = rbacMyAnggotaId_(ctx, idx);
     if (!me) throw ERR.forbidden();
     if (p.relasi) {
@@ -281,6 +301,7 @@ function Anggota_create_(ctx, p) {
   if (p.relasi) relasi = cleanRelasiPasangan_(p.relasi, rec, idx);
 
   rbacAssertCanCreateAnggota_(ctx, rec, relasi, idx);
+  assertEmailAvailableForAnggota_(rec.email, '', idx);
 
   if (rec.urutan_anak === null) rec.urutan_anak = autoUrutanAnak_(rec, idx);
   var kodeSet = {};
@@ -337,9 +358,15 @@ function Anggota_update_(ctx, p) {
 
   rbacAssertCanEditAnggota_(ctx, id, idx);
   var clean = cleanAnggotaInput_(p.data, false);
+  if (!rbacIsAdmin_(ctx) && hasOwn_(clean, 'email') && (clean.email || '') !== (before.email || '')) {
+    throw ERR.forbidden();
+  }
 
   var merged = anggotaDto_(before);
   Object.keys(clean).forEach(function (k) { merged[k] = clean[k]; });
+  if (merged.email && merged.email !== normalizeEmail_(before.email || '')) {
+    assertEmailAvailableForAnggota_(merged.email, id, idx);
+  }
 
   var lineageTouched = LINEAGE_FIELDS.some(function (f) { return hasOwn_(clean, f); });
   if (lineageTouched) {

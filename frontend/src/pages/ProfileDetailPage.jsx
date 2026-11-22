@@ -9,6 +9,7 @@ import {
   GitCompare,
   GitFork,
   Heart,
+  Mail,
   MapPin,
   MessageCircle,
   Plus,
@@ -299,6 +300,26 @@ export function ProfileDetailPage() {
                     </div>
                   )}
                 </div>
+
+                {member.email && (
+                  <div className="p-2.5 rounded-tile bg-surface-2 border border-line flex items-center justify-between gap-2">
+                    <div className="flex items-start gap-2.5 min-w-0">
+                      <Mail className="w-4 h-4 text-brand-700 dark:text-brand-300 shrink-0 mt-0.5" />
+                      <div className="min-w-0">
+                        <p className="text-[0.6875rem] font-bold text-faint">{t('profile.email')}</p>
+                        <p className="text-sm font-bold text-ink truncate">{member.email}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(member.email)}
+                      aria-label={t('common.copySuccess')}
+                      className="h-8 w-8 flex items-center justify-center rounded-full bg-surface border border-line text-ink hover:bg-[var(--well)] shrink-0"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 

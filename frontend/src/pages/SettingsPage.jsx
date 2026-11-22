@@ -65,9 +65,11 @@ export function SettingsPage() {
     if (res) toastSuccess(t('sync.syncSuccess'));
   };
 
+  const hasLocalPassword = user?.has_password !== false;
+
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    if (!oldPw || !newPw || !confirmPw) {
+    if ((hasLocalPassword && !oldPw) || !newPw || !confirmPw) {
       await alertError(t('common.requiredFields'));
       return;
     }
@@ -82,7 +84,10 @@ export function SettingsPage() {
 
     setSavingPw(true);
     try {
-      await changePassword({ password_lama: oldPw, password_baru: newPw });
+      await changePassword({
+        password_lama: hasLocalPassword ? oldPw : '',
+        password_baru: newPw
+      });
       setOldPw('');
       setNewPw('');
       setConfirmPw('');
@@ -141,7 +146,8 @@ export function SettingsPage() {
               {t('settings.title')}
             </h1>
             <p className="text-xs font-semibold text-muted truncate">
-              @{user?.username} · {t('settings.linkedProfile')}:{' '}
+              @{user?.username}
+              {user?.email ? ` · ${user.email}` : ''} · {t('settings.linkedProfile')}:{' '}
               <span className="text-ink">
                 {linkedAnggota?.nama_lengkap || t('settings.noLinkedProfile')}
               </span>
@@ -362,34 +368,50 @@ export function SettingsPage() {
               <form onSubmit={handlePasswordSubmit} className="space-y-2.5" noValidate>
                 <p className="text-sm font-bold text-ink">{t('auth.changePasswordTitle')}</p>
 
-                <div className="relative flex items-center">
-                  <input
-                    type={showPw ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    value={oldPw}
-                    onChange={(e) => setOldPw(e.target.value)}
-                    placeholder={t('auth.oldPassword')}
-                    className="w-full min-h-touch pl-3.5 pr-12 py-2 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPw((v) => !v)}
-                    aria-label={showPw ? t('auth.hidePassword') : t('auth.showPassword')}
-                    className="absolute right-0 min-h-touch min-w-touch flex items-center justify-center text-muted hover:text-ink"
-                  >
-                    {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
+                {hasLocalPassword && (
+                  <div className="relative flex items-center">
+                    <input
+                      type={showPw ? 'text' : 'password'}
+                      autoComplete="current-password"
+                      value={oldPw}
+                      onChange={(e) => setOldPw(e.target.value)}
+                      placeholder={t('auth.oldPassword')}
+                      className="w-full min-h-touch pl-3.5 pr-12 py-2 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPw((v) => !v)}
+                      aria-label={showPw ? t('auth.hidePassword') : t('auth.showPassword')}
+                      className="absolute right-0 min-h-touch min-w-touch flex items-center justify-center text-muted hover:text-ink"
+                    >
+                      {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  <input
-                    type={showPw ? 'text' : 'password'}
-                    autoComplete="new-password"
-                    value={newPw}
-                    onChange={(e) => setNewPw(e.target.value)}
-                    placeholder={t('auth.newPassword')}
-                    className="w-full min-h-touch px-3.5 py-2 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
+                  <div className="relative flex items-center">
+                    <input
+                      type={showPw ? 'text' : 'password'}
+                      autoComplete="new-password"
+                      value={newPw}
+                      onChange={(e) => setNewPw(e.target.value)}
+                      placeholder={t('auth.newPassword')}
+                      className={`w-full min-h-touch ${
+                        !hasLocalPassword ? 'pl-3.5 pr-12' : 'px-3.5'
+                      } py-2 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500`}
+                    />
+                    {!hasLocalPassword && (
+                      <button
+                        type="button"
+                        onClick={() => setShowPw((v) => !v)}
+                        aria-label={showPw ? t('auth.hidePassword') : t('auth.showPassword')}
+                        className="absolute right-0 min-h-touch min-w-touch flex items-center justify-center text-muted hover:text-ink"
+                      >
+                        {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    )}
+                  </div>
 
                   <input
                     type={showPw ? 'text' : 'password'}

@@ -102,7 +102,9 @@ function errorEnvelope_(err, action) {
 function getRoutes_() {
   return {
     // --- Autentikasi
+    'auth.config':           { auth: 'public', write: false, handler: Auth_config_ },
     'auth.login':            { auth: 'public', write: false, handler: Auth_login_ },
+    'auth.googleLogin':      { auth: 'public', write: true,  handler: Auth_googleLogin_ },
     'auth.me':               { auth: 'user',   write: false, handler: Auth_me_ },
     'auth.changePassword':   { auth: 'user',   write: true,  handler: Auth_changePassword_ },
     'auth.logoutAll':        { auth: 'user',   write: true,  handler: Auth_logoutAll_ },
@@ -148,6 +150,8 @@ function getRoutes_() {
     'admin.settings.update':     { auth: 'admin', write: true,  handler: Admin_updateSettings_ },
     'admin.wa.setToken':         { auth: 'admin', write: true,  handler: Admin_setWaToken_ },
     'admin.wa.test':             { auth: 'admin', write: false, handler: Admin_waTest_ },
-    'admin.stats':               { auth: 'admin', write: false, handler: Admin_stats_ }
+    'admin.stats':               { auth: 'admin', write: false, handler: Admin_stats_ },
+    'admin.auth.getConfig':      { auth: 'admin', write: false, handler: Admin_getAuthConfig_ },
+    'admin.auth.setConfig':      { auth: 'admin', write: true,  handler: Admin_setAuthConfig_ }
   };
 }

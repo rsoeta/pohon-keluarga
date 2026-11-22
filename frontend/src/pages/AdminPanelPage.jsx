@@ -7,12 +7,15 @@ import {
   Copy,
   FileUp,
   KeyRound,
+  Lock,
+  Mail,
   MessageSquare,
   RefreshCw,
   RotateCcw,
   Save,
   Send,
   Shield,
+  ShieldCheck,
   Sparkles,
   Trash2,
   Type,
@@ -112,14 +115,26 @@ export function AdminPanelPage() {
   // Tab Stats
   const [stats, setStats] = useState(null);
 
-  // Tab Users
+  // Tab Users & Auth Config
   const [users, setUsers] = useState([]);
   const [userDrafts, setUserDrafts] = useState({});
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [newEmail, setNewEmail] = useState('');
   const [newRole, setNewRole] = useState('User');
   const [newAnggotaId, setNewAnggotaId] = useState('');
   const [creatingUser, setCreatingUser] = useState(false);
+
+  const [authCfg, setAuthCfg] = useState({
+    turnstile_site_key: '',
+    turnstile_secret_configured: false,
+    turnstile_enabled: false,
+    turnstile_allowed_hostnames: '',
+    google_client_id: '',
+    google_oauth_enabled: false
+  });
+  const [turnstileSecretInput, setTurnstileSecretInput] = useState('');
+  const [savingAuthCfg, setSavingAuthCfg] = useState(false);
 
   // Tab Settings, Font & WA
   const [settingsForm, setSettingsForm] = useState({
@@ -156,7 +171,10 @@ export function AdminPanelPage() {
           const s = await api.admin.stats();
           setStats(s);
         } else if (targetTab === 'users') {
-          const res = await api.admin.usersList();
+          const [res, cfgRes] = await Promise.all([
+            api.admin.usersList(),
+            api.admin.authGetConfig().catch(() => null)
+          ]);
           const list = res?.users || [];
           setUsers(list);
           const drafts = {};
@@ -164,10 +182,21 @@ export function AdminPanelPage() {
             drafts[u.id_user] = {
               role: u.role,
               id_anggota: u.id_anggota || '',
-              status_aktif: Boolean(u.status_aktif)
+              status_aktif: Boolean(u.status_aktif),
+              email: u.email || ''
             };
           });
           setUserDrafts(drafts);
+          if (cfgRes) {
+            setAuthCfg({
+              turnstile_site_key: cfgRes.turnstile_site_key || '',
+              turnstile_secret_configured: Boolean(cfgRes.turnstile_secret_configured),
+              turnstile_enabled: Boolean(cfgRes.turnstile_enabled),
+              turnstile_allowed_hostnames: cfgRes.turnstile_allowed_hostnames || '',
+              google_client_id: cfgRes.google_client_id || '',
+              google_oauth_enabled: Boolean(cfgRes.google_oauth_enabled)
+            });
+          }
         } else if (targetTab === 'wa') {
           const res = await api.admin.settingsGet();
           const loadedFont = resolveFontFamily(res.font_family || fontFamilyRef.current);
@@ -220,7 +249,8 @@ export function AdminPanelPage() {
   // Handler Users
   const handleCreateUser = async (e) => {
     e.preventDefault();
-    if (!newUsername.trim() || !newPassword) {
+    const cleanEmail = newEmail.trim().toLowerCase();
+    if (!newUsername.trim() || (!newPassword && !cleanEmail)) {
       await alertError(t('common.requiredFields'));
       return;
     }
@@ -229,6 +259,7 @@ export function AdminPanelPage() {
       await api.admin.usersCreate({
         username: newUsername.trim().toLowerCase(),
         password: newPassword,
+        email: cleanEmail,
         role: newRole,
         id_anggota: newAnggotaId || '',
         status_aktif: true
@@ -236,6 +267,7 @@ export function AdminPanelPage() {
       toastSuccess(t('admin.userCreated'));
       setNewUsername('');
       setNewPassword('');
+      setNewEmail('');
       setNewRole('User');
       setNewAnggotaId('');
       await loadTabData('users');
@@ -266,12 +298,71 @@ export function AdminPanelPage() {
         id_user: idUser,
         role: d.role,
         id_anggota: d.id_anggota,
-        status_aktif: d.status_aktif
+        status_aktif: d.status_aktif,
+        email: (d.email || '').trim().toLowerCase()
       });
       toastSuccess(t('admin.userUpdated'));
       await loadTabData('users');
     } catch (err) {
       await alertError(t('admin.tabUsers'), translateError(err));
+    }
+  };
+
+  const handleSaveAuthConfig = async (e) => {
+    e.preventDefault();
+    setSavingAuthCfg(true);
+    try {
+      const payload = {
+        turnstile_site_key: authCfg.turnstile_site_key.trim(),
+        turnstile_allowed_hostnames: authCfg.turnstile_allowed_hostnames.trim(),
+        google_client_id: authCfg.google_client_id.trim()
+      };
+      if (turnstileSecretInput.trim()) {
+        payload.turnstile_secret_key = turnstileSecretInput.trim();
+      }
+      const res = await api.admin.authSetConfig(payload);
+      setTurnstileSecretInput('');
+      setAuthCfg({
+        turnstile_site_key: res.turnstile_site_key || '',
+        turnstile_secret_configured: Boolean(res.turnstile_secret_configured),
+        turnstile_enabled: Boolean(res.turnstile_enabled),
+        turnstile_allowed_hostnames: res.turnstile_allowed_hostnames || '',
+        google_client_id: res.google_client_id || '',
+        google_oauth_enabled: Boolean(res.google_oauth_enabled)
+      });
+      toastSuccess(t('admin.authConfigSaved'));
+    } catch (err) {
+      await alertError(t('admin.authSecurityTitle'), translateError(err));
+    } finally {
+      setSavingAuthCfg(false);
+    }
+  };
+
+  const handleClearTurnstileSecret = async () => {
+    const ok = await confirmAction({
+      title: t('admin.clearTurnstileSecretConfirm'),
+      confirmText: t('common.confirm'),
+      cancelText: t('common.cancel'),
+      danger: true
+    });
+    if (!ok) return;
+    setSavingAuthCfg(true);
+    try {
+      const res = await api.admin.authSetConfig({ clear_turnstile_secret: true });
+      setTurnstileSecretInput('');
+      setAuthCfg({
+        turnstile_site_key: res.turnstile_site_key || '',
+        turnstile_secret_configured: Boolean(res.turnstile_secret_configured),
+        turnstile_enabled: Boolean(res.turnstile_enabled),
+        turnstile_allowed_hostnames: res.turnstile_allowed_hostnames || '',
+        google_client_id: res.google_client_id || '',
+        google_oauth_enabled: Boolean(res.google_oauth_enabled)
+      });
+      toastSuccess(t('admin.authConfigSaved'));
+    } catch (err) {
+      await alertError(t('admin.authSecurityTitle'), translateError(err));
+    } finally {
+      setSavingAuthCfg(false);
     }
   };
 
@@ -502,100 +593,232 @@ export function AdminPanelPage() {
         </div>
       )}
 
-      {/* TAB 2: KELOLA PENGGUNA */}
+      {/* TAB 2: KELOLA PENGGUNA & KEAMANAN LOGIN */}
       {tab === 'users' && (
         <div key="tab-users" className="space-y-4 section-enter">
-          <form
-            onSubmit={handleCreateUser}
-            className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3"
-          >
-            <h2 className="text-sm font-bold text-ink flex items-center gap-2">
-              <UserPlus className="w-4 h-4 text-brand-700 dark:text-brand-300" />
-              <span>{t('admin.createUserTitle')}</span>
-            </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 items-stretch">
+            {/* Kiri: Buat Akun Login Baru */}
+            <form
+              onSubmit={handleCreateUser}
+              className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card flex flex-col justify-between gap-3 min-w-0"
+            >
+              <div className="space-y-3">
+                <h2 className="text-sm font-bold text-ink flex items-center gap-2">
+                  <UserPlus className="w-4 h-4 text-brand-700 dark:text-brand-300" />
+                  <span>{t('admin.createUserTitle')}</span>
+                </h2>
 
-            <div className="flex flex-wrap gap-3">
-              <div className="flex-1 min-w-[11rem]">
-                <label className="block text-xs font-bold text-muted mb-1">{t('admin.usernameLabel')}</label>
-                <input
-                  type="text"
-                  value={newUsername}
-                  onChange={(e) => setNewUsername(e.target.value)}
-                  placeholder="budi.santoso"
-                  className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
-                />
-              </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-xs font-bold text-muted mb-1">{t('admin.usernameLabel')}</label>
+                    <input
+                      type="text"
+                      value={newUsername}
+                      onChange={(e) => setNewUsername(e.target.value)}
+                      placeholder="budi.santoso"
+                      className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
+                    />
+                  </div>
 
-              <div className="flex-1 min-w-[12rem]">
-                <label className="block text-xs font-bold text-muted mb-1">{t('admin.passwordLabel')}</label>
-                <div className="flex gap-1.5">
-                  <input
-                    type="text"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder={t('auth.passwordPolicyHint')}
-                    className="flex-1 min-w-0 min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setNewPassword(generateSecureTempPassword(12))}
-                    title={t('admin.generatePassword')}
-                    className="min-h-touch px-3 rounded-full bg-surface-2 border border-line text-ink hover:bg-[var(--well)] text-xs font-bold inline-flex items-center gap-1 shrink-0"
-                  >
-                    <Sparkles className="w-4 h-4 text-heritage-600" />
-                    <span className="hidden sm:inline">{t('admin.generatePassword')}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCopyCredentials}
-                    title={t('admin.copyCredentials')}
-                    aria-label={t('admin.copyCredentials')}
-                    className="min-h-touch min-w-touch flex items-center justify-center rounded-full bg-surface-2 border border-line text-ink hover:bg-[var(--well)] shrink-0"
-                  >
-                    <Copy className="w-4 h-4" />
-                  </button>
+                  <div>
+                    <label className="block text-xs font-bold text-muted mb-1">{t('admin.emailLabel')}</label>
+                    <input
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      placeholder="budi@gmail.com"
+                      className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-muted mb-1">{t('admin.passwordLabel')}</label>
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder={t('admin.passwordOptionalHint')}
+                      className="flex-1 min-w-0 min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setNewPassword(generateSecureTempPassword(12))}
+                      title={t('admin.generatePassword')}
+                      className="min-h-touch px-3 rounded-full bg-surface-2 border border-line text-ink hover:bg-[var(--well)] text-xs font-bold inline-flex items-center gap-1 shrink-0"
+                    >
+                      <Sparkles className="w-4 h-4 text-heritage-600" />
+                      <span className="hidden sm:inline">{t('admin.generatePassword')}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCopyCredentials}
+                      title={t('admin.copyCredentials')}
+                      aria-label={t('admin.copyCredentials')}
+                      className="min-h-touch min-w-touch flex items-center justify-center rounded-full bg-surface-2 border border-line text-ink hover:bg-[var(--well)] shrink-0"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2.5">
+                  <div className="w-32">
+                    <label className="block text-xs font-bold text-muted mb-1">{t('admin.roleLabel')}</label>
+                    <select
+                      value={newRole}
+                      onChange={(e) => setNewRole(e.target.value)}
+                      className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
+                    >
+                      <option value="User">User</option>
+                      <option value="Admin">Admin</option>
+                    </select>
+                  </div>
+
+                  <div className="flex-1 min-w-[11rem]">
+                    <label className="block text-xs font-bold text-muted mb-1">{t('admin.linkMemberLabel')}</label>
+                    <select
+                      value={newAnggotaId}
+                      onChange={(e) => setNewAnggotaId(e.target.value)}
+                      className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
+                    >
+                      <option value="">{t('admin.noLinkOption')}</option>
+                      {activeMembers.map((a) => (
+                        <option key={a.id_anggota} value={a.id_anggota}>
+                          {a.nama_lengkap} (#{a.kode_unik})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex flex-wrap gap-3">
-              <div className="w-36">
-                <label className="block text-xs font-bold text-muted mb-1">{t('admin.roleLabel')}</label>
-                <select
-                  value={newRole}
-                  onChange={(e) => setNewRole(e.target.value)}
-                  className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
-                >
-                  <option value="User">User</option>
-                  <option value="Admin">Admin</option>
-                </select>
-              </div>
+              <button
+                type="submit"
+                disabled={creatingUser || !isOnline}
+                className="w-full min-h-ctl px-5 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white text-sm font-bold shadow-sm"
+              >
+                {creatingUser ? t('common.saving') : t('admin.createUserBtn')}
+              </button>
+            </form>
 
-              <div className="flex-1 min-w-[12rem]">
-                <label className="block text-xs font-bold text-muted mb-1">{t('admin.linkMemberLabel')}</label>
-                <select
-                  value={newAnggotaId}
-                  onChange={(e) => setNewAnggotaId(e.target.value)}
-                  className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
-                >
-                  <option value="">{t('admin.noLinkOption')}</option>
-                  {activeMembers.map((a) => (
-                    <option key={a.id_anggota} value={a.id_anggota}>
-                      {a.nama_lengkap} (#{a.kode_unik})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={creatingUser || !isOnline}
-              className="w-full sm:w-auto min-h-touch px-5 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white text-sm font-bold shadow-sm"
+            {/* Kanan: Keamanan Login (Cloudflare Turnstile & Google OAuth) */}
+            <form
+              onSubmit={handleSaveAuthConfig}
+              className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card flex flex-col justify-between gap-3 min-w-0"
             >
-              {creatingUser ? t('common.saving') : t('admin.createUserBtn')}
-            </button>
-          </form>
+              <div className="space-y-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h2 className="text-sm font-bold text-ink flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-brand-700 dark:text-brand-300" />
+                    <span>{t('admin.authSecurityTitle')}</span>
+                  </h2>
+                  <div className="flex flex-wrap gap-1.5">
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-bold ${
+                        authCfg.turnstile_enabled
+                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                          : 'bg-surface-2 border border-line text-muted'
+                      }`}
+                    >
+                      {authCfg.turnstile_enabled ? t('admin.turnstileStatusActive') : t('admin.turnstileStatusInactive')}
+                    </span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-bold ${
+                        authCfg.google_oauth_enabled
+                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                          : 'bg-surface-2 border border-line text-muted'
+                      }`}
+                    >
+                      {authCfg.google_oauth_enabled ? t('admin.googleStatusActive') : t('admin.googleStatusInactive')}
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-[0.6875rem] text-muted">{t('admin.authSecurityDesc')}</p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-xs font-bold text-muted mb-1">
+                      {t('admin.turnstileSiteKeyLabel')}
+                    </label>
+                    <input
+                      type="text"
+                      value={authCfg.turnstile_site_key}
+                      onChange={(e) => setAuthCfg((c) => ({ ...c, turnstile_site_key: e.target.value }))}
+                      placeholder={t('admin.turnstileSiteKeyPlaceholder')}
+                      className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-xs sm:text-sm font-semibold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-muted mb-1">
+                      {t('admin.turnstileSecretKeyLabel')}
+                    </label>
+                    <input
+                      type="password"
+                      value={turnstileSecretInput}
+                      onChange={(e) => setTurnstileSecretInput(e.target.value)}
+                      placeholder={t('admin.turnstileSecretPlaceholder')}
+                      className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-xs sm:text-sm font-semibold"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-xs font-bold text-muted mb-1">
+                      {t('admin.turnstileAllowedHostsLabel')}
+                    </label>
+                    <input
+                      type="text"
+                      value={authCfg.turnstile_allowed_hostnames}
+                      onChange={(e) =>
+                        setAuthCfg((c) => ({ ...c, turnstile_allowed_hostnames: e.target.value }))
+                      }
+                      placeholder={t('admin.turnstileAllowedHostsPlaceholder')}
+                      className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-xs sm:text-sm font-semibold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-muted mb-1">
+                      {t('admin.googleClientIdLabel')}
+                    </label>
+                    <input
+                      type="text"
+                      value={authCfg.google_client_id}
+                      onChange={(e) => setAuthCfg((c) => ({ ...c, google_client_id: e.target.value }))}
+                      placeholder={t('admin.googleClientIdPlaceholder')}
+                      className="w-full min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-xs sm:text-sm font-semibold"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="submit"
+                  disabled={savingAuthCfg || !isOnline}
+                  className="flex-1 min-w-[9rem] min-h-ctl px-4 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white text-xs sm:text-sm font-bold shadow-sm"
+                >
+                  {savingAuthCfg ? t('common.saving') : t('admin.saveAuthConfigBtn')}
+                </button>
+
+                {authCfg.turnstile_secret_configured && (
+                  <button
+                    type="button"
+                    onClick={handleClearTurnstileSecret}
+                    disabled={savingAuthCfg || !isOnline}
+                    className="min-h-ctl px-3.5 rounded-full border border-rose-300/80 dark:border-rose-900 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-bold shrink-0"
+                  >
+                    {t('admin.clearTurnstileSecretBtn')}
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
 
           {/* Daftar Pengguna (Kartu Flexbox Tanpa Horizontal Scroll) */}
           <div className="space-y-3">
@@ -608,7 +831,8 @@ export function AdminPanelPage() {
                 const d = userDrafts[u.id_user] || {
                   role: u.role,
                   id_anggota: u.id_anggota || '',
-                  status_aktif: u.status_aktif
+                  status_aktif: u.status_aktif,
+                  email: u.email || ''
                 };
                 const setDraft = (patch) =>
                   setUserDrafts((prev) => ({ ...prev, [u.id_user]: { ...d, ...patch } }));
@@ -619,7 +843,15 @@ export function AdminPanelPage() {
                     className="bg-surface rounded-card border border-line p-4 shadow-card space-y-3"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-base font-bold text-ink">@{u.username}</p>
+                      <div className="min-w-0 flex items-center gap-2 flex-wrap">
+                        <p className="text-base font-bold text-ink">@{u.username}</p>
+                        {u.has_password === false && (
+                          <span className="px-2 py-0.5 rounded-full bg-brand-100/80 dark:bg-brand-950/50 text-brand-800 dark:text-brand-200 text-[0.6875rem] font-bold inline-flex items-center gap-1">
+                            <ShieldCheck className="w-3 h-3" aria-hidden="true" />
+                            <span>{t('admin.googleOnlyBadge')}</span>
+                          </span>
+                        )}
+                      </div>
                       <span
                         className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
                           u.status_aktif
@@ -662,6 +894,17 @@ export function AdminPanelPage() {
                           </option>
                         ))}
                       </select>
+                    </div>
+
+                    <div className="relative flex items-center">
+                      <Mail className="w-3.5 h-3.5 text-muted absolute left-3 pointer-events-none" aria-hidden="true" />
+                      <input
+                        type="email"
+                        value={d.email}
+                        onChange={(e) => setDraft({ email: e.target.value })}
+                        placeholder={t('admin.emailLabel')}
+                        className="w-full min-h-touch pl-8 pr-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-xs font-bold"
+                      />
                     </div>
 
                     <div className="flex flex-wrap gap-2">

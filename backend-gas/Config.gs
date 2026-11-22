@@ -52,7 +52,11 @@ var PROP = Object.freeze({
   LAST_BIRTHDAY_RUN: 'LAST_BIRTHDAY_RUN',
   DEBUG_MODE: 'DEBUG_MODE',
   BOOTSTRAP_ADMIN_USERNAME: 'BOOTSTRAP_ADMIN_USERNAME',
-  BOOTSTRAP_ADMIN_PASSWORD: 'BOOTSTRAP_ADMIN_PASSWORD'
+  BOOTSTRAP_ADMIN_PASSWORD: 'BOOTSTRAP_ADMIN_PASSWORD',
+  TURNSTILE_SITE_KEY: 'TURNSTILE_SITE_KEY',
+  TURNSTILE_SECRET_KEY: 'TURNSTILE_SECRET_KEY',
+  TURNSTILE_ALLOWED_HOSTNAMES: 'TURNSTILE_ALLOWED_HOSTNAMES',
+  GOOGLE_CLIENT_ID: 'GOOGLE_CLIENT_ID'
 });
 
 var SHEET = Object.freeze({
@@ -92,6 +96,7 @@ var SCHEMA = {
     ['status_anak', 'string'],
     ['domisili', 'string'],
     ['no_wa', 'string'],
+    ['email', 'string'],
     ['foto_file_id', 'string'],
     ['id_ayah', 'string'],
     ['id_ibu', 'string'],
@@ -115,7 +120,8 @@ var SCHEMA = {
     ['id_anggota', 'string'],
     ['role', 'string'],
     ['status_aktif', 'bool'],
-    ['token_version', 'int']
+    ['token_version', 'int'],
+    ['email', 'string']
   ],
   Log_Aktivitas: [
     ['id_log', 'string'],
@@ -130,6 +136,12 @@ var SCHEMA = {
     ['nilai', 'string']
   ]
 };
+
+/** Kolom tambahan baru yang boleh belum hadir sementara di sheet produksi lama (dimigrasi otomatis saat tulis / setupSheets). */
+var OPTIONAL_SCHEMA_COLS = Object.freeze({
+  Data_Anggota: Object.freeze(['email']),
+  Data_Pengguna: Object.freeze(['email'])
+});
 
 /** Nilai awal Pengaturan_Sistem (tanpa rahasia apa pun). */
 var DEFAULT_SETTINGS = Object.freeze({
@@ -150,7 +162,7 @@ var PUBLIC_SETTING_KEYS = Object.freeze(['nama_keluarga', 'id_leluhur_utama', 'f
 /** Kolom Data_Anggota yang boleh diisi klien (whitelist anti mass-assignment). */
 var ANGGOTA_INPUT_FIELDS = Object.freeze([
   'nama_lengkap', 'jenis_kelamin', 'tgl_lahir', 'status_hidup', 'urutan_anak',
-  'status_anak', 'domisili', 'no_wa', 'id_ayah', 'id_ibu', 'id_pernikahan_ortu'
+  'status_anak', 'domisili', 'no_wa', 'email', 'id_ayah', 'id_ibu', 'id_pernikahan_ortu'
 ]);
 var LINEAGE_FIELDS = Object.freeze(['id_ayah', 'id_ibu', 'id_pernikahan_ortu']);
 

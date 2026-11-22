@@ -37,6 +37,8 @@ function adminUserDto_(u, anggotaById) {
   return {
     id_user: u.id_user,
     username: u.username,
+    email: u.email || '',
+    has_password: hasLocalPassword_(u),
     id_anggota: u.id_anggota || '',
     nama_anggota: (a && !a.is_deleted) ? a.nama_lengkap : '',
     role: ENUM.ROLE.indexOf(u.role) >= 0 ? u.role : 'User',
@@ -149,6 +151,83 @@ function Admin_setWaToken_(ctx, p) {
 }
 
 /* =========================================================================
+ * Konfigurasi Cloudflare Turnstile & Google OAuth (PropertiesService)
+ * ========================================================================= */
+function Admin_getAuthConfig_() {
+  var cfg = getAuthConfigInternal_();
+  var hasSecret = !!cfg.turnstileSecretKey;
+  return {
+    turnstile_site_key: cfg.turnstileSiteKey,
+    turnstile_secret_configured: hasSecret,
+    turnstile_enabled: !!(cfg.turnstileSiteKey && hasSecret),
+    turnstile_allowed_hostnames: cfg.turnstileAllowedHostnames,
+    google_client_id: cfg.googleClientId,
+    google_oauth_enabled: !!cfg.googleClientId
+  };
+}
+
+function Admin_setAuthConfig_(ctx, p) {
+  p = p && typeof p === 'object' ? p : {};
+  var errors = [];
+  var props = PropertiesService.getScriptProperties();
+  var changedKeys = [];
+
+  if (hasOwn_(p, 'turnstile_site_key')) {
+    var sk = typeof p.turnstile_site_key === 'string' ? p.turnstile_site_key.trim() : '';
+    if (sk && (sk.length > 128 || /[\s\u0000-\u001F\u007F<>'"]/.test(sk))) {
+      errors.push({ field: 'turnstile_site_key', rule: 'format' });
+    } else {
+      if (!sk) props.deleteProperty(PROP.TURNSTILE_SITE_KEY);
+      else props.setProperty(PROP.TURNSTILE_SITE_KEY, sk);
+      changedKeys.push('turnstile_site_key');
+    }
+  }
+
+  if (p.clear_turnstile_secret === true) {
+    props.deleteProperty(PROP.TURNSTILE_SECRET_KEY);
+    changedKeys.push('turnstile_secret_key');
+  } else if (hasOwn_(p, 'turnstile_secret_key')) {
+    var sec = typeof p.turnstile_secret_key === 'string' ? p.turnstile_secret_key.trim() : '';
+    if (sec) {
+      if (sec.length > 256 || /[\s\u0000-\u001F\u007F<>'"]/.test(sec)) {
+        errors.push({ field: 'turnstile_secret_key', rule: 'format' });
+      } else {
+        props.setProperty(PROP.TURNSTILE_SECRET_KEY, sec);
+        changedKeys.push('turnstile_secret_key');
+      }
+    }
+  }
+
+  if (hasOwn_(p, 'turnstile_allowed_hostnames')) {
+    var hosts = normalizeHostnameList_(p.turnstile_allowed_hostnames);
+    if (hosts === null) {
+      errors.push({ field: 'turnstile_allowed_hostnames', rule: 'format' });
+    } else {
+      if (!hosts) props.deleteProperty(PROP.TURNSTILE_ALLOWED_HOSTNAMES);
+      else props.setProperty(PROP.TURNSTILE_ALLOWED_HOSTNAMES, hosts);
+      changedKeys.push('turnstile_allowed_hostnames');
+    }
+  }
+
+  if (hasOwn_(p, 'google_client_id')) {
+    var cid = typeof p.google_client_id === 'string' ? p.google_client_id.trim() : '';
+    if (cid && (cid.length > 200 || !/^[A-Za-z0-9][A-Za-z0-9._-]*\.apps\.googleusercontent\.com$/i.test(cid))) {
+      errors.push({ field: 'google_client_id', rule: 'format' });
+    } else {
+      if (!cid) props.deleteProperty(PROP.GOOGLE_CLIENT_ID);
+      else props.setProperty(PROP.GOOGLE_CLIENT_ID, cid);
+      changedKeys.push('google_client_id');
+    }
+  }
+
+  if (errors.length) throw ERR.validation(errors);
+  if (changedKeys.length) {
+    logActivity_(ctx, 'UPDATE', 'AUTH_CONFIG', { entitas: 'pengaturan', keys: changedKeys });
+  }
+  return Admin_getAuthConfig_();
+}
+
+/* =========================================================================
  * Kelola Pengguna
  * ========================================================================= */
 function Admin_listUsers_() {
@@ -163,8 +242,13 @@ function Admin_createUser_(ctx, p) {
   var username = normalizeUsername_(p.username);
   if (!username) errors.push({ field: 'username', rule: 'format' });
 
+  var email = hasOwn_(p, 'email') ? normalizeEmail_(p.email) : '';
+  if (email === null) errors.push({ field: 'email', rule: 'email' });
+
   var password = typeof p.password === 'string' ? p.password : '';
-  if (!validatePasswordPolicy_(password)) errors.push({ field: 'password', rule: 'policy' });
+  if ((!email || password !== '') && !validatePasswordPolicy_(password)) {
+    errors.push({ field: 'password', rule: 'policy' });
+  }
 
   var role = p.role === undefined ? 'User' : p.role;
   if (ENUM.ROLE.indexOf(role) === -1) errors.push({ field: 'role', rule: 'enum' });
@@ -181,6 +265,7 @@ function Admin_createUser_(ctx, p) {
     throw ERR.conflict('USERNAME_EXISTS');
   }
 
+  var anggotaRows = Db.rows(SHEET.ANGGOTA);
   var anggotaById = Db.indexBy(SHEET.ANGGOTA, 'id_anggota');
   if (idAnggota) {
     var target = anggotaById[idAnggota];
@@ -190,14 +275,26 @@ function Admin_createUser_(ctx, p) {
     }
   }
 
+  if (email) {
+    if (users.some(function (u) { return normalizeEmail_(u.email) === email; })) {
+      throw ERR.conflict('EMAIL_EXISTS');
+    }
+    if (anggotaRows.some(function (a) {
+      return !a.is_deleted && normalizeEmail_(a.email) === email && (!idAnggota || a.id_anggota !== idAnggota);
+    })) {
+      throw ERR.conflict('EMAIL_EXISTS');
+    }
+  }
+
   var rec = {
     id_user: Utilities.getUuid(),
     username: username,
-    password_hash: hashPassword_(password),
+    password_hash: password ? hashPassword_(password) : '',
     id_anggota: idAnggota,
     role: role,
     status_aktif: statusAktif,
-    token_version: 1
+    token_version: 1,
+    email: email || ''
   };
   var row = Db.insert(SHEET.PENGGUNA, rec);
   logActivity_(ctx, 'CREATE', row.id_user, { entitas: 'pengguna', username: row.username, role: row.role });
@@ -219,6 +316,7 @@ function Admin_updateUser_(ctx, p) {
   var nextRole = row.role;
   var nextAnggota = row.id_anggota || '';
   var nextStatus = !!row.status_aktif;
+  var nextEmail = normalizeEmail_(row.email || '') || '';
 
   if (hasOwn_(p, 'role')) {
     if (ENUM.ROLE.indexOf(p.role) === -1) errors.push({ field: 'role', rule: 'enum' });
@@ -231,6 +329,11 @@ function Admin_updateUser_(ctx, p) {
     if (!isBoolLike_(p.status_aktif)) errors.push({ field: 'status_aktif', rule: 'boolean' });
     else nextStatus = toBool_(p.status_aktif);
   }
+  if (hasOwn_(p, 'email')) {
+    var em = normalizeEmail_(p.email);
+    if (em === null) errors.push({ field: 'email', rule: 'email' });
+    else nextEmail = em;
+  }
   if (errors.length) throw ERR.validation(errors);
 
   // Proteksi agar selalu tersisa minimal 1 Admin aktif
@@ -239,6 +342,7 @@ function Admin_updateUser_(ctx, p) {
     throw ERR.conflict('LAST_ADMIN');
   }
 
+  var anggotaRows = Db.rows(SHEET.ANGGOTA);
   var anggotaById = Db.indexBy(SHEET.ANGGOTA, 'id_anggota');
   if (nextAnggota && nextAnggota !== row.id_anggota) {
     var target = anggotaById[nextAnggota];
@@ -248,13 +352,25 @@ function Admin_updateUser_(ctx, p) {
     }
   }
 
+  if (nextEmail && nextEmail !== (normalizeEmail_(row.email || '') || '')) {
+    if (users.some(function (u) { return u.id_user !== idUser && normalizeEmail_(u.email) === nextEmail; })) {
+      throw ERR.conflict('EMAIL_EXISTS');
+    }
+    if (anggotaRows.some(function (a) {
+      return !a.is_deleted && normalizeEmail_(a.email) === nextEmail && (!nextAnggota || a.id_anggota !== nextAnggota);
+    })) {
+      throw ERR.conflict('EMAIL_EXISTS');
+    }
+  }
+
   var changes = {};
   if (nextRole !== row.role) changes.role = nextRole;
   if (nextAnggota !== (row.id_anggota || '')) changes.id_anggota = nextAnggota;
   if (nextStatus !== !!row.status_aktif) changes.status_aktif = nextStatus;
+  if (nextEmail !== (normalizeEmail_(row.email || '') || '')) changes.email = nextEmail;
 
   if (!Object.keys(changes).length) return { user: adminUserDto_(row, anggotaById), changed: false };
-  if (hasOwn_(changes, 'role') || (hasOwn_(changes, 'status_aktif') && !nextStatus)) {
+  if (hasOwn_(changes, 'role') || hasOwn_(changes, 'email') || (hasOwn_(changes, 'status_aktif') && !nextStatus)) {
     changes.token_version = Number(row.token_version || 0) + 1;
   }
 

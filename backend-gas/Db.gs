@@ -55,10 +55,17 @@ var Db = (function () {
 
   function hydrate_(t, raw, rowNumber) {
     var o = {};
+    var seen = {};
     for (var j = 0; j < t.headers.length; j++) {
       var h = t.headers[j];
-      if (t.types[h]) o[h] = deserialize_(t.types[h], raw[j]);
+      if (t.types[h]) {
+        o[h] = deserialize_(t.types[h], raw[j]);
+        seen[h] = true;
+      }
     }
+    Object.keys(t.types).forEach(function (col) {
+      if (!seen[col]) o[col] = deserialize_(t.types[col], '');
+    });
     Object.defineProperty(o, '__row', { value: rowNumber, writable: true, enumerable: false });
     Object.defineProperty(o, '__raw', { value: raw.slice(), writable: true, enumerable: false });
     return o;
@@ -88,8 +95,11 @@ var Db = (function () {
     var values = sh.getRange(1, 1, lastRow, lastCol).getValues();
     var headers = values[0].map(function (h) { return String(h).trim(); });
     var types = types_(name);
+    var optionalCols = (typeof OPTIONAL_SCHEMA_COLS !== 'undefined' && OPTIONAL_SCHEMA_COLS[name]) || [];
     Object.keys(types).forEach(function (col) {
-      if (headers.indexOf(col) === -1) throw new Error('Kolom hilang di ' + name + ': ' + col);
+      if (headers.indexOf(col) === -1 && optionalCols.indexOf(col) === -1) {
+        throw new Error('Kolom hilang di ' + name + ': ' + col);
+      }
     });
     var t = { name: name, sheet: sh, headers: headers, types: types, rows: [] };
     for (var i = 1; i < values.length; i++) {
@@ -120,9 +130,32 @@ var Db = (function () {
     return m;
   }
 
+  function ensureMissingOptionalCols_(t) {
+    var missing = Object.keys(t.types).filter(function (col) {
+      return t.headers.indexOf(col) === -1;
+    });
+    if (!missing.length) return;
+    var startCol = t.headers.length + 1;
+    t.sheet
+      .getRange(1, startCol, 1, missing.length)
+      .setValues([missing])
+      .setFontWeight('bold')
+      .setBackground('#1e3a5f')
+      .setFontColor('#ffffff');
+    missing.forEach(function (col) {
+      t.headers.push(col);
+    });
+    t.rows.forEach(function (r) {
+      if (r.__raw) {
+        while (r.__raw.length < t.headers.length) r.__raw.push('');
+      }
+    });
+  }
+
   function insertMany(name, objs) {
     if (!objs || !objs.length) return [];
     var t = table(name);
+    ensureMissingOptionalCols_(t);
     var sh = t.sheet;
     var start = Math.max(sh.getLastRow(), 1) + 1;
     var need = start + objs.length - 1 - sh.getMaxRows();
@@ -144,6 +177,7 @@ var Db = (function () {
   /** Menerapkan perubahan ke objek baris (hasil table()) lalu menulis 1 baris. */
   function update(name, row, changes) {
     var t = table(name);
+    ensureMissingOptionalCols_(t);
     if (!row || !row.__row) throw new Error('Baris tidak valid untuk update');
     Object.keys(changes || {}).forEach(function (k) { if (t.types[k]) row[k] = changes[k]; });
     var data = toRow_(t, row, row.__raw);
@@ -159,6 +193,7 @@ var Db = (function () {
   function writeRows(name, rowObjs) {
     if (!rowObjs || !rowObjs.length) return;
     var t = table(name);
+    ensureMissingOptionalCols_(t);
     var sorted = rowObjs.slice().sort(function (a, b) { return a.__row - b.__row; });
     var fmt = formats_(t);
     var block = [];

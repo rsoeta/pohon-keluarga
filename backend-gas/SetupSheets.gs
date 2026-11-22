@@ -146,7 +146,8 @@ function setupSheets() {
       id_anggota: '',
       role: 'Admin',
       status_aktif: true,
-      token_version: 1
+      token_version: 1,
+      email: ''
     });
 
     if (customPw) {
@@ -167,8 +168,40 @@ function setupSheets() {
     sheets: sheetResults,
     foto_folder_id: folderId,
     admin_bootstrapped: adminBootstrapped,
-    wa_token_configured: !!props.getProperty(PROP.WA_TOKEN)
+    wa_token_configured: !!props.getProperty(PROP.WA_TOKEN),
+    turnstile_configured: !!(props.getProperty(PROP.TURNSTILE_SITE_KEY) && props.getProperty(PROP.TURNSTILE_SECRET_KEY)),
+    google_oauth_configured: !!props.getProperty(PROP.GOOGLE_CLIENT_ID)
   };
+}
+
+/** Helper opsional untuk menyetel Cloudflare Turnstile dari editor GAS. */
+function setTurnstileKeys(siteKey, secretKey, allowedHostnames) {
+  var props = PropertiesService.getScriptProperties();
+  var sk = typeof siteKey === 'string' ? siteKey.trim() : '';
+  var sec = typeof secretKey === 'string' ? secretKey.trim() : '';
+  if (!sk || !sec) {
+    props.deleteProperty(PROP.TURNSTILE_SITE_KEY);
+    props.deleteProperty(PROP.TURNSTILE_SECRET_KEY);
+  } else {
+    props.setProperty(PROP.TURNSTILE_SITE_KEY, sk);
+    props.setProperty(PROP.TURNSTILE_SECRET_KEY, sec);
+  }
+  if (typeof allowedHostnames === 'string') {
+    var hosts = normalizeHostnameList_(allowedHostnames);
+    if (hosts === null) throw new Error('Format allowedHostnames tidak valid.');
+    if (hosts) props.setProperty(PROP.TURNSTILE_ALLOWED_HOSTNAMES, hosts);
+    else props.deleteProperty(PROP.TURNSTILE_ALLOWED_HOSTNAMES);
+  }
+  return { turnstile_enabled: !!(sk && sec) };
+}
+
+/** Helper opsional untuk menyetel Google OAuth Client ID dari editor GAS. */
+function setGoogleOAuthClientId(clientId) {
+  var props = PropertiesService.getScriptProperties();
+  var cid = typeof clientId === 'string' ? clientId.trim() : '';
+  if (!cid) props.deleteProperty(PROP.GOOGLE_CLIENT_ID);
+  else props.setProperty(PROP.GOOGLE_CLIENT_ID, cid);
+  return { google_oauth_enabled: !!cid };
 }
 
 /** Helper opsional untuk memasang trigger ulang tahun harian dari editor GAS. */

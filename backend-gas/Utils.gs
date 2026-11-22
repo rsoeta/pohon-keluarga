@@ -160,6 +160,61 @@ function normalizeUsername_(v) {
   return /^[a-z0-9._-]{3,32}$/.test(s) ? s : '';
 }
 
+/** Normalisasi email: '' bila kosong; null bila format tidak valid. */
+function normalizeEmail_(v) {
+  if (v === null || v === undefined) return '';
+  if (typeof v !== 'string') return null;
+  var s = v.trim().toLowerCase();
+  if (s === '') return '';
+  if (s.length > 160 || /[<>'"\s]/.test(s) || /[\u0000-\u001F\u007F]/.test(s)) return null;
+  var re = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/;
+  return re.test(s) ? s : null;
+}
+
+/** Normalisasi daftar hostname Turnstile (dipisah koma): '' bila kosong; null bila tidak valid. */
+function normalizeHostnameList_(v) {
+  if (v === null || v === undefined) return '';
+  if (typeof v !== 'string') return null;
+  var trimmed = v.trim();
+  if (!trimmed) return '';
+  var parts = trimmed.split(',');
+  var out = [];
+  var seen = {};
+  var hostRe = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$/;
+  for (var i = 0; i < parts.length; i++) {
+    var h = parts[i].trim().toLowerCase();
+    if (!h) continue;
+    if (!hostRe.test(h)) return null;
+    if (!seen[h]) {
+      seen[h] = true;
+      out.push(h);
+    }
+  }
+  var joined = out.join(',');
+  return joined.length > 500 ? null : joined;
+}
+
+/** Membuat username unik & valid dari local-part email untuk auto-provisioning OAuth. */
+function deriveUniqueUsername_(email, existingUsers) {
+  var taken = {};
+  (existingUsers || []).forEach(function (u) {
+    if (u && u.username) taken[String(u.username).trim().toLowerCase()] = true;
+  });
+  var local = String(email || '').split('@')[0].toLowerCase();
+  var base = local
+    .replace(/[^a-z0-9._-]+/g, '.')
+    .replace(/\.{2,}/g, '.')
+    .replace(/^[._-]+|[._-]+$/g, '');
+  if (base.length < 3) base = (base + 'user').substring(0, 12);
+  if (base.length > 26) base = base.substring(0, 26);
+  if (!taken[base] && normalizeUsername_(base)) return base;
+  for (var n = 2; n < 10000; n++) {
+    var cand = base.substring(0, 26) + '_' + n;
+    if (!taken[cand] && normalizeUsername_(cand)) return cand;
+  }
+  return 'user_' + sha256Hex_(email + ':' + Date.now()).substring(0, 12);
+}
+
 function validatePasswordPolicy_(pw) {
   if (typeof pw !== 'string') return false;
   if (pw.length < APP.PASSWORD_MIN || pw.length > APP.PASSWORD_MAX) return false;

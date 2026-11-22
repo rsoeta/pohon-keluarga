@@ -77,6 +77,8 @@ jobs:
           RAW_VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_APP_DOMAIN: www.altasim.studio-pasti.net
           VITE_DEBUG: 'false'
+          VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
         run: |
           set -euo pipefail
           VITE_API_URL="${RAW_VITE_API_URL//$'\r'/}"

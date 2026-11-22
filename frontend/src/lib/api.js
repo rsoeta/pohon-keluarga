@@ -78,7 +78,13 @@ export async function apiPost(action, payload = {}, opts = {}) {
     const err = (json && json.error) || {};
     const status = Number(err.status || 500);
     const code = err.code || 'INTERNAL_ERROR';
-    if (status === 401 && action !== 'auth.login' && onUnauthorizedFn) {
+    if (
+      status === 401 &&
+      action !== 'auth.login' &&
+      action !== 'auth.googleLogin' &&
+      action !== 'auth.config' &&
+      onUnauthorizedFn
+    ) {
       onUnauthorizedFn();
     }
     throw new ApiClientError(status, code, err.message || code, err.fields || null);
@@ -89,7 +95,9 @@ export async function apiPost(action, payload = {}, opts = {}) {
 
 export const api = {
   auth: {
+    config: () => apiPost('auth.config', {}, { token: '' }),
     login: (payload) => apiPost('auth.login', payload, { token: '' }),
+    googleLogin: (payload) => apiPost('auth.googleLogin', payload, { token: '' }),
     me: () => apiPost('auth.me', {}),
     changePassword: (payload) => apiPost('auth.changePassword', payload),
     logoutAll: () => apiPost('auth.logoutAll', {})
@@ -137,6 +145,8 @@ export const api = {
     settingsUpdate: (payload) => apiPost('admin.settings.update', payload),
     setWaToken: (token) => apiPost('admin.wa.setToken', { token }),
     waTest: (payload = {}) => apiPost('admin.wa.test', payload),
-    stats: () => apiPost('admin.stats', {})
+    stats: () => apiPost('admin.stats', {}),
+    authGetConfig: () => apiPost('admin.auth.getConfig', {}),
+    authSetConfig: (payload) => apiPost('admin.auth.setConfig', payload)
   }
 };

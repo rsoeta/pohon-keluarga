@@ -123,13 +123,133 @@ function authenticate_(token) {
   return { user: publicUser_(user), claims: claims };
 }
 
+function getAuthConfigInternal_() {
+  var props = PropertiesService.getScriptProperties();
+  return {
+    turnstileSiteKey: (props.getProperty(PROP.TURNSTILE_SITE_KEY) || '').trim(),
+    turnstileSecretKey: (props.getProperty(PROP.TURNSTILE_SECRET_KEY) || '').trim(),
+    turnstileAllowedHostnames: (props.getProperty(PROP.TURNSTILE_ALLOWED_HOSTNAMES) || '').trim().toLowerCase(),
+    googleClientId: (props.getProperty(PROP.GOOGLE_CLIENT_ID) || '').trim()
+  };
+}
+
+function Auth_config_() {
+  var cfg = getAuthConfigInternal_();
+  var turnstileEnabled = !!(cfg.turnstileSiteKey && cfg.turnstileSecretKey);
+  return {
+    turnstile_enabled: turnstileEnabled,
+    turnstile_site_key: turnstileEnabled ? cfg.turnstileSiteKey : '',
+    google_oauth_enabled: !!cfg.googleClientId,
+    google_client_id: cfg.googleClientId || ''
+  };
+}
+
+function hasLocalPassword_(u) {
+  return String((u && u.password_hash) || '').indexOf('pbkdf2_sha256$') === 0;
+}
+
 function publicUser_(u) {
   return {
     id_user: u.id_user,
     username: u.username,
+    email: u.email || '',
+    has_password: hasLocalPassword_(u),
     role: ENUM.ROLE.indexOf(u.role) >= 0 ? u.role : 'User',
     id_anggota: u.id_anggota || ''
   };
+}
+
+function verifyTurnstileToken_(token) {
+  var cfg = getAuthConfigInternal_();
+  if (!cfg.turnstileSecretKey) return { skipped: true };
+
+  if (typeof token !== 'string' || !token.trim() || token.length > 4096) {
+    throw new ApiError(400, 'TURNSTILE_REQUIRED', 'Verifikasi keamanan Cloudflare Turnstile wajib diselesaikan.');
+  }
+
+  var resp;
+  try {
+    resp = UrlFetchApp.fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'post',
+      payload: {
+        secret: cfg.turnstileSecretKey,
+        response: token.trim()
+      },
+      muteHttpExceptions: true
+    });
+  } catch (e) {
+    throw new ApiError(400, 'TURNSTILE_FAILED', 'Verifikasi keamanan gagal atau kedaluwarsa. Silakan coba lagi.');
+  }
+
+  if (!resp || resp.getResponseCode() !== 200) {
+    throw new ApiError(400, 'TURNSTILE_FAILED', 'Verifikasi keamanan gagal atau kedaluwarsa. Silakan coba lagi.');
+  }
+
+  var data;
+  try {
+    data = JSON.parse(resp.getContentText() || '{}');
+  } catch (e) {
+    throw new ApiError(400, 'TURNSTILE_FAILED', 'Verifikasi keamanan gagal atau kedaluwarsa. Silakan coba lagi.');
+  }
+
+  if (!data || data.success !== true) {
+    throw new ApiError(400, 'TURNSTILE_FAILED', 'Verifikasi keamanan gagal atau kedaluwarsa. Silakan coba lagi.');
+  }
+
+  if (cfg.turnstileAllowedHostnames) {
+    var allowed = cfg.turnstileAllowedHostnames.split(',').filter(Boolean);
+    var host = String(data.hostname || '').trim().toLowerCase();
+    if (!host || allowed.indexOf(host) === -1) {
+      throw new ApiError(400, 'TURNSTILE_FAILED', 'Verifikasi keamanan gagal atau kedaluwarsa. Silakan coba lagi.');
+    }
+  }
+
+  return { ok: true, hostname: data.hostname || '' };
+}
+
+function verifyGoogleIdToken_(credential, expectedClientId) {
+  if (typeof credential !== 'string' || credential.length < 100 || credential.length > 4096 ||
+      !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(credential)) {
+    throw new ApiError(401, 'GOOGLE_TOKEN_INVALID', 'Token login Google tidak valid.');
+  }
+
+  var resp;
+  try {
+    resp = UrlFetchApp.fetch(
+      'https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(credential),
+      { muteHttpExceptions: true }
+    );
+  } catch (e) {
+    throw new ApiError(401, 'GOOGLE_TOKEN_INVALID', 'Token login Google tidak valid.');
+  }
+
+  if (!resp || resp.getResponseCode() !== 200) {
+    throw new ApiError(401, 'GOOGLE_TOKEN_INVALID', 'Token login Google tidak valid.');
+  }
+
+  var info;
+  try {
+    info = JSON.parse(resp.getContentText() || '{}');
+  } catch (e) {
+    throw new ApiError(401, 'GOOGLE_TOKEN_INVALID', 'Token login Google tidak valid.');
+  }
+
+  var issOk = info.iss === 'https://accounts.google.com' || info.iss === 'accounts.google.com';
+  var verifiedOk = info.email_verified === true || info.email_verified === 'true';
+  var expMs = Number(info.exp) * 1000;
+  var email = normalizeEmail_(info.email);
+
+  if (!info ||
+      !constantTimeEquals_(String(info.aud || ''), expectedClientId) ||
+      !issOk ||
+      !verifiedOk ||
+      !isFinite(expMs) ||
+      expMs <= Date.now() ||
+      !email) {
+    throw new ApiError(401, 'GOOGLE_TOKEN_INVALID', 'Token login Google tidak valid.');
+  }
+
+  return { email: email, sub: String(info.sub || '') };
 }
 
 /* =========================================================================
@@ -146,9 +266,12 @@ function Auth_login_(ctx, p) {
   var fails = Number(cache.get(key) || 0);
   if (fails >= APP.LOGIN_MAX_ATTEMPTS) throw ERR.tooMany();
 
+  verifyTurnstileToken_(p.turnstile_token);
+
   var user = Db.findOne(SHEET.PENGGUNA, 'username', username);
-  var ok = verifyPassword_(password, user ? user.password_hash : DUMMY_HASH_);
-  if (!user || !ok || !user.status_aktif) {
+  var canUsePassword = !!(user && hasLocalPassword_(user));
+  var ok = verifyPassword_(password, canUsePassword ? user.password_hash : DUMMY_HASH_);
+  if (!user || !canUsePassword || !ok || !user.status_aktif) {
     cache.put(key, String(fails + 1), APP.LOGIN_LOCK_SECONDS);
     throw ERR.invalidCredentials();
   }
@@ -156,6 +279,99 @@ function Auth_login_(ctx, p) {
 
   var t = issueToken_(user, remember);
   return { token: t.token, expires_at: t.expires_at, user: publicUser_(user) };
+}
+
+function Auth_googleLogin_(ctx, p) {
+  var cfg = getAuthConfigInternal_();
+  if (!cfg.googleClientId) throw ERR.unavailable('GOOGLE_AUTH_NOT_CONFIGURED');
+
+  var remember = p.remember === true;
+  var info = verifyGoogleIdToken_(p.credential, cfg.googleClientId);
+  var email = info.email;
+
+  var cache = CacheService.getScriptCache();
+  var key = 'glogin_fail_' + sha256Hex_(email);
+  var fails = Number(cache.get(key) || 0);
+  if (fails >= APP.LOGIN_MAX_ATTEMPTS) throw ERR.tooMany();
+
+  var users = Db.rows(SHEET.PENGGUNA);
+  var matchedUser = null;
+  for (var i = 0; i < users.length; i++) {
+    if (normalizeEmail_(users[i].email) === email) {
+      matchedUser = users[i];
+      if (users[i].status_aktif) break;
+    }
+  }
+
+  if (matchedUser) {
+    if (!matchedUser.status_aktif) {
+      throw new ApiError(403, 'ACCOUNT_INACTIVE', 'Akun pengguna dinonaktifkan oleh Administrator.');
+    }
+    cache.remove(key);
+    var tExisting = issueToken_(matchedUser, remember);
+    return { token: tExisting.token, expires_at: tExisting.expires_at, user: publicUser_(matchedUser) };
+  }
+
+  var anggotaRows = Db.rows(SHEET.ANGGOTA);
+  var matchedAnggota = null;
+  for (var j = 0; j < anggotaRows.length; j++) {
+    if (!anggotaRows[j].is_deleted && normalizeEmail_(anggotaRows[j].email) === email) {
+      matchedAnggota = anggotaRows[j];
+      break;
+    }
+  }
+
+  if (!matchedAnggota) {
+    cache.put(key, String(fails + 1), APP.LOGIN_LOCK_SECONDS);
+    throw new ApiError(403, 'EMAIL_NOT_WHITELISTED', 'Email Google Anda belum terdaftar dalam whitelist keluarga.');
+  }
+
+  var activeLinked = null;
+  var inactiveLinked = null;
+  for (var k = 0; k < users.length; k++) {
+    if (users[k].id_anggota === matchedAnggota.id_anggota) {
+      if (users[k].status_aktif) {
+        activeLinked = users[k];
+        break;
+      } else if (!inactiveLinked) {
+        inactiveLinked = users[k];
+      }
+    }
+  }
+  var linkedUser = activeLinked || inactiveLinked;
+
+  if (linkedUser) {
+    if (!linkedUser.status_aktif) {
+      throw new ApiError(403, 'ACCOUNT_INACTIVE', 'Akun pengguna dinonaktifkan oleh Administrator.');
+    }
+    var linkedEmail = normalizeEmail_(linkedUser.email);
+    if (linkedEmail && linkedEmail !== email) {
+      cache.put(key, String(fails + 1), APP.LOGIN_LOCK_SECONDS);
+      throw new ApiError(403, 'EMAIL_NOT_WHITELISTED', 'Email Google Anda belum terdaftar dalam whitelist keluarga.');
+    }
+    cache.remove(key);
+    var tLinked = issueToken_(linkedUser, remember);
+    return { token: tLinked.token, expires_at: tLinked.expires_at, user: publicUser_(linkedUser) };
+  }
+
+  var created = Db.insert(SHEET.PENGGUNA, {
+    id_user: Utilities.getUuid(),
+    username: deriveUniqueUsername_(email, users),
+    password_hash: '',
+    id_anggota: matchedAnggota.id_anggota,
+    role: 'User',
+    status_aktif: true,
+    token_version: 1,
+    email: email
+  });
+  logActivity_({ user: publicUser_(created) }, 'CREATE', created.id_user, {
+    entitas: 'pengguna',
+    sumber: 'google_oauth',
+    id_anggota: matchedAnggota.id_anggota
+  });
+  cache.remove(key);
+  var tCreated = issueToken_(created, remember);
+  return { token: tCreated.token, expires_at: tCreated.expires_at, user: publicUser_(created) };
 }
 
 function Auth_me_(ctx) {
@@ -170,11 +386,13 @@ function Auth_me_(ctx) {
 function Auth_changePassword_(ctx, p) {
   var row = Db.findOne(SHEET.PENGGUNA, 'id_user', ctx.user.id_user);
   if (!row) throw ERR.unauthorized();
-  var oldPw = typeof p.password_lama === 'string' ? p.password_lama : '';
-  var newPw = typeof p.password_baru === 'string' ? p.password_baru : '';
-  if (!verifyPassword_(oldPw, row.password_hash)) {
-    throw new ApiError(400, 'INVALID_OLD_PASSWORD', 'Password lama tidak sesuai.');
+  if (hasLocalPassword_(row)) {
+    var oldPw = typeof p.password_lama === 'string' ? p.password_lama : '';
+    if (!verifyPassword_(oldPw, row.password_hash)) {
+      throw new ApiError(400, 'INVALID_OLD_PASSWORD', 'Password lama tidak sesuai.');
+    }
   }
+  var newPw = typeof p.password_baru === 'string' ? p.password_baru : '';
   if (!validatePasswordPolicy_(newPw)) throw ERR.validation([{ field: 'password_baru', rule: 'policy' }]);
 
   Db.update(SHEET.PENGGUNA, row, {

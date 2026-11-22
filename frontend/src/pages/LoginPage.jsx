@@ -1,16 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Download, Eye, EyeOff, Globe, Info, LogIn, Moon, Sun, TreePine } from 'lucide-react';
+import { Download, Eye, EyeOff, Globe, Info, KeyRound, LogIn, Moon, ShieldCheck, Sun, TreePine } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useTheme } from '../contexts/ThemeContext.jsx';
 import { useI18n } from '../contexts/I18nContext.jsx';
 import { usePwaInstall } from '../hooks/usePwaInstall.js';
-import { isApiConfigured } from '../lib/api.js';
+import { api, isApiConfigured } from '../lib/api.js';
 import { alertError, toastSuccess } from '../lib/swal.js';
 import { SegmentedPillControl } from '../components/common/SegmentedPillControl.jsx';
+import { TurnstileWidget } from '../components/auth/TurnstileWidget.jsx';
+import { GoogleSignInButton } from '../components/auth/GoogleSignInButton.jsx';
+
+const ENV_TURNSTILE_SITE_KEY = (import.meta.env?.VITE_TURNSTILE_SITE_KEY || '').trim();
+const ENV_GOOGLE_CLIENT_ID = (import.meta.env?.VITE_GOOGLE_CLIENT_ID || '').trim();
 
 export function LoginPage() {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, login, loginWithGoogle } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const { lang, setLang, t, translateError } = useI18n();
   const { canInstall, promptInstall } = usePwaInstall();
@@ -21,15 +26,56 @@ export function LoginPage() {
   const redirectTo =
     typeof rawFrom === 'string' && /^\/(?!\/|\\)/.test(rawFrom) ? rawFrom : '/pohon';
 
+  const [loginMethod, setLoginMethod] = useState('password');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+  const [authConfig, setAuthConfig] = useState({
+    loaded: !isApiConfigured(),
+    turnstile_enabled: Boolean(ENV_TURNSTILE_SITE_KEY),
+    turnstile_site_key: ENV_TURNSTILE_SITE_KEY,
+    google_oauth_enabled: Boolean(ENV_GOOGLE_CLIENT_ID),
+    google_client_id: ENV_GOOGLE_CLIENT_ID
+  });
+
+  useEffect(() => {
+    if (!isApiConfigured()) return undefined;
+    let cancelled = false;
+    api.auth
+      .config()
+      .then((cfg) => {
+        if (cancelled) return;
+        const resolvedSiteKey = cfg?.turnstile_site_key || ENV_TURNSTILE_SITE_KEY || '';
+        const resolvedClientId = cfg?.google_client_id || ENV_GOOGLE_CLIENT_ID || '';
+        setAuthConfig({
+          loaded: true,
+          turnstile_enabled: Boolean(cfg?.turnstile_enabled && resolvedSiteKey),
+          turnstile_site_key: cfg?.turnstile_enabled ? resolvedSiteKey : '',
+          google_oauth_enabled: Boolean(cfg?.google_oauth_enabled && resolvedClientId),
+          google_client_id: cfg?.google_oauth_enabled ? resolvedClientId : ''
+        });
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAuthConfig((prev) => ({ ...prev, loaded: true }));
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   if (isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
   }
+
+  const turnstileEnabled = Boolean(authConfig.turnstile_enabled && authConfig.turnstile_site_key);
+  const googleEnabled = Boolean(authConfig.google_oauth_enabled && authConfig.google_client_id);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,14 +84,44 @@ export function LoginPage() {
       await alertError(t('common.requiredFields'));
       return;
     }
+    if (turnstileEnabled && !turnstileToken) {
+      await alertError(t('auth.loginButton'), t('auth.turnstileRequired'));
+      return;
+    }
 
     setSubmitting(true);
     try {
-      await login({ username: u, password, remember });
+      await login({
+        username: u,
+        password,
+        remember,
+        turnstile_token: turnstileEnabled ? turnstileToken : ''
+      });
       toastSuccess(t('auth.loginSuccess'));
       navigate(redirectTo, { replace: true });
     } catch (err) {
+      if (turnstileEnabled) {
+        setTurnstileToken('');
+        setTurnstileResetKey((k) => k + 1);
+      }
       await alertError(t('auth.loginButton'), translateError(err));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleGoogleCredential = async (credential) => {
+    if (!credential) {
+      await alertError(t('auth.googleOption'), t('auth.googleTokenMissing'));
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await loginWithGoogle({ credential, remember });
+      toastSuccess(t('auth.loginSuccess'));
+      navigate(redirectTo, { replace: true });
+    } catch (err) {
+      await alertError(t('auth.googleOption'), translateError(err));
     } finally {
       setSubmitting(false);
     }
@@ -100,77 +176,139 @@ export function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-            <div>
-              <label htmlFor="login-username" className="block text-sm font-bold text-ink mb-1.5">
-                {t('auth.usernameLabel')}
-              </label>
-              <input
-                id="login-username"
-                name="username"
-                type="text"
-                autoComplete="username"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck="false"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder={t('auth.usernamePlaceholder')}
-                className="w-full min-h-touch px-4 py-2.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                required
-              />
-            </div>
+          <div className="mb-5">
+            <SegmentedPillControl
+              ariaLabel={t('auth.loginMethodLabel')}
+              value={loginMethod}
+              onChange={setLoginMethod}
+              fullWidth
+              tone="brand"
+              className="bg-surface-2"
+              buttonClassName="min-w-0 text-xs sm:text-sm"
+              options={[
+                { value: 'password', label: t('auth.passwordOption'), icon: KeyRound },
+                { value: 'google', label: t('auth.googleOption'), icon: ShieldCheck }
+              ]}
+            />
+          </div>
 
-            <div>
-              <label htmlFor="login-password" className="block text-sm font-bold text-ink mb-1.5">
-                {t('auth.passwordLabel')}
-              </label>
-              <div className="relative flex items-center">
+          {loginMethod === 'password' ? (
+            <form key="login-password" onSubmit={handleSubmit} className="space-y-4 section-enter" noValidate>
+              <div>
+                <label htmlFor="login-username" className="block text-sm font-bold text-ink mb-1.5">
+                  {t('auth.usernameLabel')}
+                </label>
                 <input
-                  id="login-password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={t('auth.passwordPlaceholder')}
-                  className="w-full min-h-touch pl-4 pr-14 py-2.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  id="login-username"
+                  name="username"
+                  type="text"
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder={t('auth.usernamePlaceholder')}
+                  className="w-full min-h-touch px-4 py-2.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                   required
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
-                  className="absolute right-0 min-h-touch min-w-touch flex items-center justify-center text-muted hover:text-ink rounded-tile"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
               </div>
+
+              <div>
+                <label htmlFor="login-password" className="block text-sm font-bold text-ink mb-1.5">
+                  {t('auth.passwordLabel')}
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    id="login-password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={t('auth.passwordPlaceholder')}
+                    className="w-full min-h-touch pl-4 pr-14 py-2.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+                    className="absolute right-0 min-h-touch min-w-touch flex items-center justify-center text-muted hover:text-ink rounded-tile"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              <label
+                htmlFor="login-remember"
+                className="min-h-touch flex items-center gap-3 cursor-pointer select-none py-1"
+              >
+                <input
+                  id="login-remember"
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                  className="w-5 h-5 rounded border-[var(--line-2)] text-brand-700 focus:ring-brand-500"
+                />
+                <span className="text-sm font-semibold text-muted">{t('auth.rememberMe')}</span>
+              </label>
+
+              {turnstileEnabled && (
+                <TurnstileWidget
+                  siteKey={authConfig.turnstile_site_key}
+                  isDark={isDark}
+                  lang={lang}
+                  resetKey={turnstileResetKey}
+                  onTokenChange={setTurnstileToken}
+                />
+              )}
+
+              <button
+                type="submit"
+                disabled={submitting || (turnstileEnabled && !turnstileToken)}
+                className="w-full min-h-cta px-5 py-2 rounded-full bg-brand-700 hover:bg-brand-800 active:scale-[0.99] disabled:opacity-60 text-white font-bold text-sm sm:text-base shadow-sm flex items-center justify-center gap-2 transition-all"
+              >
+                <LogIn className="w-4 h-4" aria-hidden="true" />
+                <span>{submitting ? t('auth.loggingIn') : t('auth.loginButton')}</span>
+              </button>
+            </form>
+          ) : (
+            <div key="login-google" className="space-y-4 section-enter">
+              <div className="p-3.5 rounded-tile bg-surface-2 border border-line text-xs font-medium text-muted leading-relaxed">
+                {t('auth.googleHint')}
+              </div>
+
+              <label
+                htmlFor="login-google-remember"
+                className="min-h-touch flex items-center gap-3 cursor-pointer select-none py-1"
+              >
+                <input
+                  id="login-google-remember"
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                  className="w-5 h-5 rounded border-[var(--line-2)] text-brand-700 focus:ring-brand-500"
+                />
+                <span className="text-sm font-semibold text-muted">{t('auth.rememberMe')}</span>
+              </label>
+
+              {googleEnabled ? (
+                <GoogleSignInButton
+                  clientId={authConfig.google_client_id}
+                  isDark={isDark}
+                  lang={lang}
+                  disabled={submitting}
+                  onCredential={handleGoogleCredential}
+                />
+              ) : (
+                <div className="p-3.5 rounded-tile bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs font-semibold text-amber-900 dark:text-amber-200 text-center">
+                  {authConfig.loaded ? t('auth.googleNotConfigured') : t('common.loading')}
+                </div>
+              )}
             </div>
-
-            <label
-              htmlFor="login-remember"
-              className="min-h-touch flex items-center gap-3 cursor-pointer select-none py-1"
-            >
-              <input
-                id="login-remember"
-                type="checkbox"
-                checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
-                className="w-5 h-5 rounded border-[var(--line-2)] text-brand-700 focus:ring-brand-500"
-              />
-              <span className="text-sm font-semibold text-muted">{t('auth.rememberMe')}</span>
-            </label>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full min-h-cta px-5 py-2 rounded-full bg-brand-700 hover:bg-brand-800 active:scale-[0.99] disabled:opacity-60 text-white font-bold text-sm sm:text-base shadow-sm flex items-center justify-center gap-2 transition-all"
-            >
-              <LogIn className="w-4 h-4" aria-hidden="true" />
-              <span>{submitting ? t('auth.loggingIn') : t('auth.loginButton')}</span>
-            </button>
-          </form>
+          )}
 
           {canInstall && (
             <button

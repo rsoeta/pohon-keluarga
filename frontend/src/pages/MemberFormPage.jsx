@@ -79,6 +79,7 @@ export function MemberFormPage() {
   const [urutanAnak, setUrutanAnak] = useState('');
   const [domisili, setDomisili] = useState('');
   const [noWa, setNoWa] = useState('');
+  const [email, setEmail] = useState('');
 
   // Relasi pernikahan (saat mode === 'spouse')
   const [marriageStatus, setMarriageStatus] = useState('Aktif');
@@ -119,6 +120,7 @@ export function MemberFormPage() {
     setUrutanAnak(existing.urutan_anak ? String(existing.urutan_anak) : '');
     setDomisili(existing.domisili || '');
     setNoWa(existing.no_wa || '');
+    setEmail(existing.email || '');
     setIdAyah(existing.id_ayah || '');
     setIdIbu(existing.id_ibu || '');
     setCompressedPhoto(null);
@@ -319,6 +321,12 @@ export function MemberFormPage() {
       return;
     }
 
+    const cleanEmail = email.trim().toLowerCase();
+    if (admin && cleanEmail && !/^[^\s@<>'"]+@[^\s@<>'"]+\.[^\s@<>'"]+$/.test(cleanEmail)) {
+      await alertError(t('form.emailLabel'), t('form.invalidEmail'));
+      return;
+    }
+
     const dataPayload = {
       nama_lengkap: cleanName,
       jenis_kelamin: jenisKelamin,
@@ -329,6 +337,9 @@ export function MemberFormPage() {
       domisili: domisili.trim(),
       no_wa: cleanWaRaw
     };
+    if (admin) {
+      dataPayload.email = cleanEmail;
+    }
 
     if (!isEdit && addMode !== 'spouse') {
       if (idAyah) dataPayload.id_ayah = idAyah;
@@ -746,8 +757,8 @@ export function MemberFormPage() {
                 </div>
               </div>
 
-              {/* Baris 4: Urutan Anak, Domisili & Nomor WhatsApp */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Baris 4: Urutan Anak, Domisili, Nomor WhatsApp (& Email Whitelist khusus Admin) */}
+              <div className={`grid grid-cols-1 ${admin ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-3`}>
                 <div>
                   <label htmlFor="f-urutan" className="block text-sm font-bold text-ink mb-1">
                     {t('form.childOrder')}
@@ -792,6 +803,23 @@ export function MemberFormPage() {
                     className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
                   />
                 </div>
+
+                {admin && (
+                  <div>
+                    <label htmlFor="f-email" className="block text-sm font-bold text-ink mb-1">
+                      {t('form.emailLabel')}
+                    </label>
+                    <input
+                      id="f-email"
+                      type="email"
+                      maxLength={160}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder={t('form.emailPlaceholder')}
+                      className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 

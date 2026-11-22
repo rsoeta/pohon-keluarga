@@ -151,27 +151,40 @@ export function AuthProvider({ children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.token]);
 
+  const commitSession = useCallback((res, remember = false) => {
+    const nextSession = {
+      token: res.token,
+      expires_at: res.expires_at,
+      user: res.user,
+      remember: Boolean(remember)
+    };
+    tokenRef.current = nextSession.token;
+    writeStoredSession(nextSession);
+    setSession(nextSession);
+    // Sinkronisasi awal segera di latar belakang
+    syncFamilyData({ forceFull: false, userId: res.user.id_user })
+      .then((syncRes) => {
+        if (syncRes?.server_time) setLastSyncAt(syncRes.server_time);
+      })
+      .catch(() => {});
+  }, []);
+
   const login = useCallback(
-    async ({ username, password, remember = false }) => {
-      const res = await api.auth.login({ username, password, remember });
-      const nextSession = {
-        token: res.token,
-        expires_at: res.expires_at,
-        user: res.user,
-        remember: Boolean(remember)
-      };
-      tokenRef.current = nextSession.token;
-      writeStoredSession(nextSession);
-      setSession(nextSession);
-      // Sinkronisasi awal segera di latar belakang
-      syncFamilyData({ forceFull: false, userId: res.user.id_user })
-        .then((syncRes) => {
-          if (syncRes?.server_time) setLastSyncAt(syncRes.server_time);
-        })
-        .catch(() => {});
+    async ({ username, password, remember = false, turnstile_token = '' }) => {
+      const res = await api.auth.login({ username, password, remember, turnstile_token });
+      commitSession(res, remember);
       return res;
     },
-    []
+    [commitSession]
+  );
+
+  const loginWithGoogle = useCallback(
+    async ({ credential, remember = false }) => {
+      const res = await api.auth.googleLogin({ credential, remember });
+      commitSession(res, remember);
+      return res;
+    },
+    [commitSession]
   );
 
   const logout = useCallback(async () => {
@@ -213,6 +226,7 @@ export function AuthProvider({ children }) {
       lastSyncAt,
       isOnline,
       login,
+      loginWithGoogle,
       logout,
       logoutAll,
       changePassword,
@@ -226,6 +240,7 @@ export function AuthProvider({ children }) {
       lastSyncAt,
       isOnline,
       login,
+      loginWithGoogle,
       logout,
       logoutAll,
       changePassword,
