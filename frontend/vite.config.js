@@ -16,7 +16,7 @@ export default defineConfig({
         'icons/icon-maskable-512.png'
       ],
       manifest: {
-        id: 'https://www.altasim.studio-pasti.net/',
+        id: '/',
         name: 'Pohon Keluarga',
         short_name: 'Pohon Keluarga',
         description: 'Aplikasi Silsilah & Pohon Keluarga Privat',
