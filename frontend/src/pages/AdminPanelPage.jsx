@@ -99,6 +99,12 @@ export function AdminPanelPage() {
       const normalized = resolveAdminTabParam(nextTab);
       setTabState(normalized);
       setSearchParams(normalized === 'stats' ? {} : { tab: normalized }, { replace: true });
+      if (typeof window !== 'undefined' && window.scrollY > 0) {
+        const prefersReduced =
+          typeof window.matchMedia === 'function' &&
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: 0, behavior: prefersReduced ? 'auto' : 'smooth' });
+      }
     },
     [setSearchParams]
   );
@@ -455,9 +461,9 @@ export function AdminPanelPage() {
 
       {/* TAB 1: STATISTIK */}
       {tab === 'stats' && (
-        <div className="space-y-4">
+        <div key="tab-stats" className="space-y-4 section-enter">
           {stats ? (
-            <div className="flex flex-wrap gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {[
                 [t('admin.statMembers'), stats.anggota.total_aktif, `${t('admin.statGenderRatio')}: ${stats.anggota.laki_laki} / ${stats.anggota.perempuan}`],
                 [t('admin.statLivingRatio'), `${stats.anggota.hidup} / ${stats.anggota.wafat}`, `${t('admin.statAdopted')}: ${stats.anggota.anak_angkat} · ${t('admin.statDeleted')}: ${stats.anggota.terhapus}`],
@@ -472,7 +478,7 @@ export function AdminPanelPage() {
               ].map(([title, val, sub]) => (
                 <div
                   key={title}
-                  className="w-full sm:w-[calc(50%-0.375rem)] bg-surface rounded-card border border-line p-4 shadow-card"
+                  className="w-full bg-surface rounded-card border border-line p-4 shadow-card"
                 >
                   <p className="text-xs font-bold text-faint">{title}</p>
                   <p className="text-2xl font-bold text-ink mt-1">{val}</p>
@@ -498,7 +504,7 @@ export function AdminPanelPage() {
 
       {/* TAB 2: KELOLA PENGGUNA */}
       {tab === 'users' && (
-        <div className="space-y-4">
+        <div key="tab-users" className="space-y-4 section-enter">
           <form
             onSubmit={handleCreateUser}
             className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3"
@@ -597,103 +603,105 @@ export function AdminPanelPage() {
               {t('admin.usersListTitle', { n: users.length })}
             </h2>
 
-            {users.map((u) => {
-              const d = userDrafts[u.id_user] || {
-                role: u.role,
-                id_anggota: u.id_anggota || '',
-                status_aktif: u.status_aktif
-              };
-              const setDraft = (patch) =>
-                setUserDrafts((prev) => ({ ...prev, [u.id_user]: { ...d, ...patch } }));
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              {users.map((u) => {
+                const d = userDrafts[u.id_user] || {
+                  role: u.role,
+                  id_anggota: u.id_anggota || '',
+                  status_aktif: u.status_aktif
+                };
+                const setDraft = (patch) =>
+                  setUserDrafts((prev) => ({ ...prev, [u.id_user]: { ...d, ...patch } }));
 
-              return (
-                <article
-                  key={u.id_user}
-                  className="bg-surface rounded-card border border-line p-4 shadow-card space-y-3"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-base font-bold text-ink">@{u.username}</p>
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                        u.status_aktif
-                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-                          : 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300'
-                      }`}
-                    >
-                      {u.status_aktif ? t('admin.statusActive') : t('admin.statusInactive')}
-                    </span>
-                  </div>
+                return (
+                  <article
+                    key={u.id_user}
+                    className="bg-surface rounded-card border border-line p-4 shadow-card space-y-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-base font-bold text-ink">@{u.username}</p>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                          u.status_aktif
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                            : 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300'
+                        }`}
+                      >
+                        {u.status_aktif ? t('admin.statusActive') : t('admin.statusInactive')}
+                      </span>
+                    </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    <select
-                      value={d.role}
-                      onChange={(e) => setDraft({ role: e.target.value })}
-                      className="min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-xs font-bold"
-                    >
-                      <option value="User">User</option>
-                      <option value="Admin">Admin</option>
-                    </select>
+                    <div className="flex flex-wrap gap-2">
+                      <select
+                        value={d.role}
+                        onChange={(e) => setDraft({ role: e.target.value })}
+                        className="min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-xs font-bold"
+                      >
+                        <option value="User">User</option>
+                        <option value="Admin">Admin</option>
+                      </select>
 
-                    <select
-                      value={d.status_aktif ? '1' : '0'}
-                      onChange={(e) => setDraft({ status_aktif: e.target.value === '1' })}
-                      className="min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-xs font-bold"
-                    >
-                      <option value="1">{t('admin.statusActive')}</option>
-                      <option value="0">{t('admin.statusInactive')}</option>
-                    </select>
+                      <select
+                        value={d.status_aktif ? '1' : '0'}
+                        onChange={(e) => setDraft({ status_aktif: e.target.value === '1' })}
+                        className="min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-xs font-bold"
+                      >
+                        <option value="1">{t('admin.statusActive')}</option>
+                        <option value="0">{t('admin.statusInactive')}</option>
+                      </select>
 
-                    <select
-                      value={d.id_anggota}
-                      onChange={(e) => setDraft({ id_anggota: e.target.value })}
-                      className="flex-1 min-w-[11rem] min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-xs font-bold"
-                    >
-                      <option value="">{t('admin.noLinkOption')}</option>
-                      {activeMembers.map((a) => (
-                        <option key={a.id_anggota} value={a.id_anggota}>
-                          {a.nama_lengkap} (#{a.kode_unik})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                      <select
+                        value={d.id_anggota}
+                        onChange={(e) => setDraft({ id_anggota: e.target.value })}
+                        className="flex-1 min-w-[11rem] min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-xs font-bold"
+                      >
+                        <option value="">{t('admin.noLinkOption')}</option>
+                        {activeMembers.map((a) => (
+                          <option key={a.id_anggota} value={a.id_anggota}>
+                            {a.nama_lengkap} (#{a.kode_unik})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateUser(u.id_user)}
-                      className="flex-1 min-w-[8rem] min-h-touch px-3.5 rounded-full bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-sm"
-                    >
-                      <Save className="w-3.5 h-3.5" />
-                      <span>{t('admin.saveUserBtn')}</span>
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateUser(u.id_user)}
+                        className="flex-1 min-w-[8rem] min-h-touch px-3.5 rounded-full bg-brand-700 hover:bg-brand-800 text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow-sm"
+                      >
+                        <Save className="w-3.5 h-3.5" />
+                        <span>{t('admin.saveUserBtn')}</span>
+                      </button>
 
-                    <button
-                      type="button"
-                      onClick={() => handleResetPassword(u)}
-                      className="flex-1 min-w-[8rem] min-h-touch px-3.5 rounded-full bg-surface-2 border border-line hover:bg-[var(--well)] text-ink text-xs font-bold inline-flex items-center justify-center gap-1.5"
-                    >
-                      <KeyRound className="w-3.5 h-3.5" />
-                      <span>{t('admin.resetPasswordBtn')}</span>
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => handleResetPassword(u)}
+                        className="flex-1 min-w-[8rem] min-h-touch px-3.5 rounded-full bg-surface-2 border border-line hover:bg-[var(--well)] text-ink text-xs font-bold inline-flex items-center justify-center gap-1.5"
+                      >
+                        <KeyRound className="w-3.5 h-3.5" />
+                        <span>{t('admin.resetPasswordBtn')}</span>
+                      </button>
 
-                    <button
-                      type="button"
-                      onClick={() => handleRevokeSessions(u)}
-                      className="min-h-touch px-3.5 rounded-full border border-rose-300/80 dark:border-rose-900 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-bold"
-                    >
-                      {t('admin.revokeSessionsBtn')}
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
+                      <button
+                        type="button"
+                        onClick={() => handleRevokeSessions(u)}
+                        className="min-h-touch px-3.5 rounded-full border border-rose-300/80 dark:border-rose-900 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-bold"
+                      >
+                        {t('admin.revokeSessionsBtn')}
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
 
       {/* TAB 3: PENGATURAN & WA GATEWAY */}
       {tab === 'wa' && (
-        <div className="space-y-4">
+        <div key="tab-wa" className="space-y-4 section-enter">
           <form
             onSubmit={handleSaveSettings}
             className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3"
@@ -764,7 +772,10 @@ export function AdminPanelPage() {
               </div>
 
               {fontMode === 'preset' ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div
+                  key="font-preset"
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 section-enter"
+                >
                   {FONT_PRESETS.map((preset) => {
                     const selected =
                       sanitizeFontName(settingsForm.font_family).toLowerCase() === preset.name.toLowerCase();
@@ -799,7 +810,7 @@ export function AdminPanelPage() {
                   })}
                 </div>
               ) : (
-                <div className="space-y-1.5">
+                <div key="font-custom" className="space-y-1.5 section-enter">
                   <label htmlFor="admin-custom-font" className="block text-xs font-bold text-muted">
                     {t('admin.fontCustomLabel')}
                   </label>
@@ -1004,7 +1015,7 @@ export function AdminPanelPage() {
 
       {/* TAB 4: DATA TERHAPUS (PEMULIHAN) */}
       {tab === 'deleted' && (
-        <div className="space-y-4">
+        <div key="tab-deleted" className="space-y-4 section-enter">
           {!deletedData.anggota.length && !deletedData.pernikahan.length ? (
             <div className="bg-surface rounded-card border border-line p-6 text-center text-sm font-medium text-muted shadow-card">
               {t('admin.noDeletedData')}

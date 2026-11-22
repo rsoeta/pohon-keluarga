@@ -60,7 +60,7 @@ export function BirthdaysPage() {
             {t('birthdays.noToday')}
           </div>
         ) : (
-          <div className="flex flex-wrap gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {schedule.today.map((item) => {
               const a = item.anggota;
               const greeting = t('birthdays.waGreetingTemplate', {
@@ -72,7 +72,7 @@ export function BirthdaysPage() {
               return (
                 <article
                   key={a.id_anggota}
-                  className="w-full sm:w-[calc(50%-0.375rem)] bg-gradient-to-br from-brand-50 via-surface to-heritage-50 dark:from-brand-950/50 dark:via-surface dark:to-heritage-950/30 rounded-card border border-brand-200 dark:border-brand-800 p-4 shadow-card flex flex-col justify-between gap-3"
+                  className="w-full bg-gradient-to-br from-brand-50 via-surface to-heritage-50 dark:from-brand-950/50 dark:via-surface dark:to-heritage-950/30 rounded-card border border-brand-200 dark:border-brand-800 p-4 shadow-card flex flex-col justify-between gap-3"
                 >
                   <div className="flex items-start gap-3 min-w-0">
                     <button
@@ -193,7 +193,10 @@ export function BirthdaysPage() {
             {t('birthdays.noUpcoming')}
           </div>
         ) : (
-          <div className="flex flex-wrap gap-2.5">
+          <div
+            key={rangeFilter}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 section-enter"
+          >
             {filteredUpcoming.map((item) => {
               const a = item.anggota;
               const countdownText =
@@ -206,7 +209,7 @@ export function BirthdaysPage() {
                   key={a.id_anggota}
                   type="button"
                   onClick={() => openMemberDrawer(a.id_anggota)}
-                  className="w-full sm:w-[calc(50%-0.3125rem)] min-h-touch p-3.5 rounded-card bg-surface border border-line hover:border-brand-500 shadow-card flex items-center justify-between gap-3 text-left transition-colors"
+                  className="w-full min-h-touch p-3.5 rounded-card bg-surface border border-line hover:border-brand-500 shadow-card flex items-center justify-between gap-3 text-left transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <MemberAvatar

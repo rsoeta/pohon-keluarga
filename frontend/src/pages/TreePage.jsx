@@ -48,6 +48,7 @@ export function TreePage() {
   const [maxGenerations, setMaxGenerations] = useState(4);
   const [scale, setScale] = useState(0.9);
   const [pan, setPan] = useState({ x: 16, y: 16 });
+  const [isInteracting, setIsInteracting] = useState(false);
   const [exporting, setExporting] = useState(false);
 
   const viewportRef = useRef(null);
@@ -122,6 +123,7 @@ export function TreePage() {
   const handlePointerDown = (e) => {
     if (e.target.closest('button, a')) return;
     e.currentTarget.setPointerCapture?.(e.pointerId);
+    setIsInteracting(true);
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointersRef.current.size === 1) {
       dragMovedRef.current = false;
@@ -155,6 +157,7 @@ export function TreePage() {
   const handlePointerUp = (e) => {
     pointersRef.current.delete(e.pointerId);
     if (pointersRef.current.size < 2) pinchStartRef.current = null;
+    if (pointersRef.current.size === 0) setIsInteracting(false);
   };
 
   const zoomBy = (delta) => {
@@ -266,7 +269,7 @@ export function TreePage() {
   const canGoUpParent = Boolean(layout.parentsOfFocus?.ayah || layout.parentsOfFocus?.ibu);
 
   return (
-    <div className="space-y-3">
+    <div className="flex-1 flex flex-col gap-3">
       {/* Bar Kontrol Atas — Fluid Flexbox tanpa horizontal scroll */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         {/* Sakelar Menurun / Mendatar dengan indikator pill bergeser */}
@@ -324,7 +327,7 @@ export function TreePage() {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         onWheel={handleWheel}
-        className="relative w-full h-[calc(100dvh-13.75rem)] min-h-[24rem] rounded-card border border-line bg-surface shadow-card overflow-hidden touch-none select-none cursor-grab active:cursor-grabbing"
+        className="relative flex-1 w-full min-h-[calc(100dvh-12.5rem)] rounded-card border border-line bg-surface shadow-card overflow-hidden touch-none select-none cursor-grab active:cursor-grabbing"
         style={{
           backgroundImage:
             'radial-gradient(circle, rgba(13,92,85,0.16) 1px, transparent 1px)',
@@ -339,7 +342,7 @@ export function TreePage() {
             transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${scale})`,
             transformOrigin: '0 0'
           }}
-          className="relative"
+          className={`relative ${isInteracting ? '' : 'tree-stage-smooth'}`}
         >
           {/* Konektor SVG */}
           <svg

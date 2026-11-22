@@ -98,7 +98,12 @@ export function MemberQuickDrawer() {
   }, [drawerMemberId, closeMemberDrawer]);
 
   useEffect(() => {
-    if (bodyRef.current) bodyRef.current.scrollTop = 0;
+    if (!bodyRef.current) return;
+    const prefersReduced =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    bodyRef.current.scrollTo({ top: 0, behavior: prefersReduced ? 'auto' : 'smooth' });
   }, [drawerMemberId]);
 
   useEffect(() => {
@@ -227,8 +232,12 @@ export function MemberQuickDrawer() {
 
         {/* Body Scrollable */}
         {member && (
-          <div ref={bodyRef} className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-            {/* Strip Aksi Cepat */}
+          <div
+            ref={bodyRef}
+            className="flex-1 overflow-y-auto scroll-smooth overscroll-contain p-4 sm:p-5"
+          >
+            <div key={member.id_anggota} className="space-y-4 section-enter">
+              {/* Strip Aksi Cepat */}
             <div className="flex flex-wrap gap-1.5" aria-label={t('drawer.quickActions')}>
               <button
                 type="button"
@@ -453,6 +462,7 @@ export function MemberQuickDrawer() {
                   {t('drawer.noRelatives')}
                 </p>
               )}
+            </div>
             </div>
           </div>
         )}

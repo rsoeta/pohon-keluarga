@@ -58,7 +58,7 @@ export function TopHeader() {
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-line bg-surface/85 backdrop-blur-md">
-      <div className="w-full max-w-5xl mx-auto px-3 sm:px-6 py-1.5 flex items-center justify-between gap-2 sm:gap-3">
+      <div className="w-full px-3 sm:px-4 lg:px-6 py-1.5 flex items-center justify-between gap-2 sm:gap-3">
         {/* Kiri: Brand Organic Pine */}
         <Link
           to="/pohon"
@@ -87,7 +87,7 @@ export function TopHeader() {
           type="button"
           onClick={openCommandPalette}
           aria-label={t('command.dialogLabel')}
-          className="hidden md:flex flex-1 max-w-md h-9 items-center justify-between gap-2 px-3.5 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          className="hidden md:flex flex-1 max-w-lg h-9 items-center justify-between gap-2 px-3.5 rounded-full bg-surface-2 hover:bg-[var(--well)] border border-line text-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
         >
           <span className="flex items-center gap-2 min-w-0">
             <Search className="w-4 h-4 text-faint shrink-0" aria-hidden="true" />

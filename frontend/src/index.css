@@ -96,6 +96,7 @@
     font-size: 16px;
     overflow-x: hidden;
     scroll-behavior: smooth;
+    scroll-padding-top: 4.5rem;
   }
 
   @media (max-width: 639px) {
@@ -192,6 +193,41 @@
 
 .palette-enter {
   animation: paletteIn 0.18s var(--ease-tend);
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes sectionEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.page-enter {
+  animation: pageEnter 260ms var(--ease-tend) both;
+  will-change: transform, opacity;
+}
+
+.section-enter {
+  animation: sectionEnter 220ms var(--ease-tend) both;
+}
+
+.tree-stage-smooth {
+  transition: transform 260ms var(--ease-tend);
 }
 
 .sliding-pill-indicator {

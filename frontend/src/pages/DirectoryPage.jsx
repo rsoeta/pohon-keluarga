@@ -128,13 +128,16 @@ export function DirectoryPage() {
           <p className="text-sm font-medium text-muted mt-1">{t('directory.emptyDesc')}</p>
         </div>
       ) : (
-        <div className="flex flex-wrap gap-3">
+        <div
+          key={`${genderFilter}-${livingFilter}-${childFilter}`}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 section-enter"
+        >
           {visible.map((a) => {
             const yr = extractBirthYear(a.tgl_lahir);
             return (
               <article
                 key={a.id_anggota}
-                className="w-full sm:w-[calc(50%-0.375rem)] bg-surface rounded-card border border-line p-4 shadow-card flex flex-col justify-between gap-3"
+                className="w-full bg-surface rounded-card border border-line p-4 shadow-card hover:border-brand-400/70 transition-colors flex flex-col justify-between gap-3"
               >
                 <div className="flex items-start gap-3 min-w-0">
                   <button
