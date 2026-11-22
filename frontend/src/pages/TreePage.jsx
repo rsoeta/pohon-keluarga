@@ -28,6 +28,14 @@ import { SegmentedPillControl } from '../components/common/SegmentedPillControl.
 
 const MIN_SCALE = 0.35;
 const MAX_SCALE = 1.8;
+const MOBILE_TABLET_MQ = '(max-width: 1024px)';
+
+function getDefaultTreeOrientation() {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return 'vertical';
+  }
+  return window.matchMedia(MOBILE_TABLET_MQ).matches ? 'horizontal' : 'vertical';
+}
 
 function clampScale(s) {
   return Math.max(MIN_SCALE, Math.min(MAX_SCALE, Number(s.toFixed(3))));
@@ -44,7 +52,7 @@ export function TreePage() {
   const pernikahanList = useLiveQuery(() => db.pernikahan.toArray(), [], []);
   const metaPengaturan = useLiveQuery(() => db.meta.get('pengaturan'), [], null);
 
-  const [orientation, setOrientation] = useState('vertical');
+  const [orientation, setOrientationState] = useState(getDefaultTreeOrientation);
   const [maxGenerations, setMaxGenerations] = useState(4);
   const [scale, setScale] = useState(0.9);
   const [pan, setPan] = useState({ x: 16, y: 16 });
@@ -52,9 +60,31 @@ export function TreePage() {
   const [exporting, setExporting] = useState(false);
 
   const viewportRef = useRef(null);
+  const manualOrientationRef = useRef(false);
   const pointersRef = useRef(new Map());
   const dragMovedRef = useRef(false);
   const pinchStartRef = useRef(null);
+
+  const handleOrientationChange = useCallback((next) => {
+    manualOrientationRef.current = true;
+    setOrientationState(next);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined;
+    const mq = window.matchMedia(MOBILE_TABLET_MQ);
+    const onMediaChange = (e) => {
+      if (!manualOrientationRef.current) {
+        setOrientationState(e.matches ? 'horizontal' : 'vertical');
+      }
+    };
+    if (typeof mq.addEventListener === 'function') {
+      mq.addEventListener('change', onMediaChange);
+      return () => mq.removeEventListener('change', onMediaChange);
+    }
+    mq.addListener(onMediaChange);
+    return () => mq.removeListener(onMediaChange);
+  }, []);
 
   const pengaturan = metaPengaturan?.value || {};
   const paramFocus = searchParams.get('focus') || '';
@@ -275,7 +305,7 @@ export function TreePage() {
         {/* Sakelar Menurun / Mendatar dengan indikator pill bergeser */}
         <SegmentedPillControl
           value={orientation}
-          onChange={setOrientation}
+          onChange={handleOrientationChange}
           tone="brand"
           options={[
             { value: 'vertical', label: t('tree.vertical'), icon: Rows3 },
