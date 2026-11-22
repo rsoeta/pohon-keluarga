@@ -20,7 +20,7 @@ function truncateToWidth(doc, text, maxWidth) {
 }
 
 /**
- * Membangun dokumen PDF vektor beresolusi penuh untuk cabang pohon aktif (3-4 generasi).
+ * Membangun dokumen PDF vektor beresolusi penuh untuk cabang pohon aktif (3-7 generasi).
  */
 export function buildTreePdfDoc(
   layout,

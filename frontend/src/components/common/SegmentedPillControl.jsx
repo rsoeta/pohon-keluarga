@@ -59,6 +59,10 @@ export function SegmentedPillControl({
     const top = bRect.top - cRect.top - container.clientTop;
     const width = bRect.width;
     const height = bRect.height;
+    if (width <= 0 || height <= 0) {
+      setIndicator((prev) => (prev.ready ? { ...prev, ready: false } : prev));
+      return;
+    }
 
     const shouldAnimate = hasMeasuredRef.current;
 
@@ -113,6 +117,8 @@ export function SegmentedPillControl({
   const indicatorBg = TONE_INDICATOR_CLASS[tone] || TONE_INDICATOR_CLASS.brand;
   const activeText = TONE_ACTIVE_TEXT[tone] || TONE_ACTIVE_TEXT.brand;
   const isTablist = role === 'tablist';
+  const hasFlexWrapClass = /\bflex-(?:nowrap|wrap(?:-reverse)?)\b/.test(className);
+  const hasButtonPxClass = /\bpx-/.test(buttonClassName);
 
   return (
     <div
@@ -121,7 +127,7 @@ export function SegmentedPillControl({
       aria-label={ariaLabel}
       className={`relative ${
         fullWidth ? 'flex w-full' : 'inline-flex'
-      } flex-wrap items-center gap-0.5 rounded-[20px] bg-surface border border-line p-0.5 shadow-card ${className}`}
+      } ${hasFlexWrapClass ? '' : 'flex-wrap'} items-center gap-0.5 rounded-[20px] bg-surface border border-line p-0.5 shadow-card ${className}`}
     >
       <span
         aria-hidden="true"
@@ -161,7 +167,7 @@ export function SegmentedPillControl({
             }}
             className={`relative z-10 ${
               fullWidth ? 'flex-1' : ''
-            } min-h-ctl px-3 py-1 rounded-full text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors duration-200 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+            } min-h-ctl ${hasButtonPxClass ? '' : 'px-3'} py-1 rounded-full text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors duration-200 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
               isActive
                 ? activeText
                 : 'text-ink/85 hover:text-ink hover:bg-[var(--well)] disabled:hover:bg-transparent'

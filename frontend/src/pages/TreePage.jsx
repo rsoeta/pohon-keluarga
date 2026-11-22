@@ -3,9 +3,11 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import {
   ArrowUp,
+  ChevronDown,
   Compass,
   FileDown,
   GitFork,
+  Layers,
   LocateFixed,
   Minus,
   Plus,
@@ -19,14 +21,14 @@ import { prefetchPhotos } from '../db/sync.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useI18n } from '../contexts/I18nContext.jsx';
 import { useQuickUi } from '../contexts/QuickUiContext.jsx';
-import { computeTreeLayout, pickDefaultFocusId } from '../lib/treeLayout.js';
+import { computeTreeLayout, pickDefaultFocusId, TREE_GENERATION_OPTIONS } from '../lib/treeLayout.js';
 import { canEditAnggota, isAdmin } from '../lib/rbac.js';
 import { extractBirthYear, formatKodeUnik } from '../lib/format.js';
 import { chooseTwoActions, selectOption, toastError, toastSuccess } from '../lib/swal.js';
 import { MemberAvatar } from '../components/common/MemberAvatar.jsx';
 import { SegmentedPillControl } from '../components/common/SegmentedPillControl.jsx';
 
-const MIN_SCALE = 0.35;
+const MIN_SCALE = 0.2;
 const MAX_SCALE = 1.8;
 const DRAG_THRESHOLD_PX = 6;
 const MOBILE_TABLET_MQ = '(max-width: 1024px)';
@@ -283,15 +285,20 @@ export function TreePage() {
 
   const handleExportPdf = async () => {
     if (!layout.nodes.length || exporting) return;
+    const pdfOptions = {};
+    for (const [paperKey, labelKey] of [
+      ['a4', 'tree.paperA4'],
+      ['a3', 'tree.paperA3']
+    ]) {
+      for (const gen of TREE_GENERATION_OPTIONS) {
+        pdfOptions[`${paperKey}:${gen}`] = `${t(labelKey)} · ${t('tree.generations', { n: gen })}`;
+      }
+    }
+
     const picked = await selectOption({
       title: t('tree.exportPdfTitle'),
-      options: {
-        'a4:3': `${t('tree.paperA4')} · ${t('tree.generations', { n: 3 })}`,
-        'a4:4': `${t('tree.paperA4')} · ${t('tree.generations', { n: 4 })}`,
-        'a3:3': `${t('tree.paperA3')} · ${t('tree.generations', { n: 3 })}`,
-        'a3:4': `${t('tree.paperA3')} · ${t('tree.generations', { n: 4 })}`
-      },
-      initialValue: `a4:${maxGenerations}`,
+      options: pdfOptions,
+      initialValue: `${maxGenerations >= 5 ? 'a3' : 'a4'}:${maxGenerations}`,
       confirmText: t('tree.exportPdf'),
       cancelText: t('common.cancel')
     });
@@ -374,13 +381,39 @@ export function TreePage() {
 
         {/* Kedalaman Generasi & Navigasi Fokus */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <SegmentedPillControl
-            value={maxGenerations}
-            onChange={setMaxGenerations}
-            tone="heritage"
-            buttonClassName="px-3"
-            options={[3, 4].map((gen) => ({ value: gen, label: `${gen}G` }))}
-          />
+          {/* Pemilih Generasi Ringkas di Mobile (< 640px) agar tetap 1 baris dan rapi */}
+          <div className="relative inline-flex sm:hidden items-center rounded-[20px] bg-surface border border-line p-0.5 shadow-card">
+            <div className="relative inline-flex items-center gap-1 min-h-ctl pl-2.5 pr-2 py-1 rounded-full bg-heritage-700 text-white text-xs font-bold shadow-sm focus-within:ring-2 focus-within:ring-brand-500">
+              <Layers className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+              <span>{maxGenerations}G</span>
+              <ChevronDown className="w-3.5 h-3.5 shrink-0 opacity-90" aria-hidden="true" />
+              <select
+                aria-label={t('tree.generations', { n: maxGenerations })}
+                value={maxGenerations}
+                onChange={(e) => setMaxGenerations(Number(e.target.value))}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              >
+                {TREE_GENERATION_OPTIONS.map((gen) => (
+                  <option key={gen} value={gen} className="bg-surface text-ink">
+                    {t('tree.generations', { n: gen })} ({gen}G)
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Pemilih Generasi Sliding Pill di Tablet & Desktop (>= 640px) */}
+          <div className="hidden sm:inline-flex">
+            <SegmentedPillControl
+              value={maxGenerations}
+              onChange={setMaxGenerations}
+              tone="heritage"
+              ariaLabel={t('tree.generations', { n: maxGenerations })}
+              className="flex-nowrap"
+              buttonClassName="px-2.5"
+              options={TREE_GENERATION_OPTIONS.map((gen) => ({ value: gen, label: `${gen}G` }))}
+            />
+          </div>
 
           {canGoUpParent && (
             <button

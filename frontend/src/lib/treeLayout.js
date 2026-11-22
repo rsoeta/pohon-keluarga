@@ -4,7 +4,7 @@
  *  - Pernikahan ganda (poligami / menikah lagi)
  *  - Anak kandung & anak angkat (isAngkat)
  *  - Pernikahan antar-kerabat & anti-looping (isDuplicateRef)
- *  - Kedalaman 3 atau 4 generasi
+ *  - Kedalaman 3 hingga 7 generasi
  */
 
 export const TREE_METRICS = Object.freeze({
@@ -16,6 +16,9 @@ export const TREE_METRICS = Object.freeze({
   GEN_GAP: 66,
   PAD: 36
 });
+
+export const MAX_TREE_GENERATIONS = 7;
+export const TREE_GENERATION_OPTIONS = Object.freeze([3, 4, 5, 6, 7]);
 
 function marriageStatusRank(st) {
   if (st === 'Aktif') return 0;
@@ -460,7 +463,7 @@ export function computeTreeLayout(
   { focusId, orientation = 'vertical', maxGenerations = 4 } = {}
 ) {
   const maps = buildActiveMaps(anggotaList, pernikahanList);
-  const gens = Math.max(1, Math.min(4, Number(maxGenerations) || 4));
+  const gens = Math.max(1, Math.min(MAX_TREE_GENERATIONS, Number(maxGenerations) || 4));
   const orient = orientation === 'horizontal' ? 'horizontal' : 'vertical';
 
   const resolvedFocusId = focusId && maps.byId.has(focusId) ? focusId : '';
