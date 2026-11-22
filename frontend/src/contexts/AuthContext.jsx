@@ -199,6 +199,19 @@ export function AuthProvider({ children }) {
     }
   }, [clearSessionState]);
 
+  const updateEmail = useCallback(async (email) => {
+    const res = await api.auth.updateEmail(email);
+    if (res?.user) {
+      setSession((prev) => {
+        if (!prev) return prev;
+        const updated = { ...prev, user: res.user };
+        writeStoredSession(updated);
+        return updated;
+      });
+    }
+    return res;
+  }, []);
+
   const changePassword = useCallback(async ({ password_lama, password_baru }) => {
     const res = await api.auth.changePassword({ password_lama, password_baru });
     const nextSession = {
@@ -229,6 +242,7 @@ export function AuthProvider({ children }) {
       loginWithGoogle,
       logout,
       logoutAll,
+      updateEmail,
       changePassword,
       triggerSync
     }),
@@ -243,6 +257,7 @@ export function AuthProvider({ children }) {
       loginWithGoogle,
       logout,
       logoutAll,
+      updateEmail,
       changePassword,
       triggerSync
     ]

@@ -86,6 +86,15 @@ export default {
     gedcomImportBtn: 'Impor Data GEDCOM (.ged)',
     gedcomImportDesc: 'Unggah data silsilah massal secara aman dengan pratinjau.',
     securityTitle: 'Keamanan Akun',
+    googleEmailTitle: 'Email Google (Login OAuth)',
+    googleEmailHint: 'Daftarkan email Google pribadi agar dapat masuk lewat tombol Google OAuth.',
+    googleEmailPlaceholder: 'nama@gmail.com',
+    googleEmailLinked: 'Terhubung',
+    googleEmailUnlinked: 'Belum Ditautkan',
+    saveEmailBtn: 'Simpan Email',
+    emailSaved: 'Email Google pribadi berhasil disimpan ke whitelist!',
+    emailRemoved: 'Tautan email Google berhasil dilepas.',
+    emailRemoveConfirm: 'Lepas tautan email Google pribadi dari akun Anda? Anda tidak lagi dapat masuk via Google OAuth memakai email ini.',
     logoutBtn: 'Keluar',
     logoutAllBtn: 'Keluar Semua Perangkat',
     savePasswordBtn: 'Simpan Password Baru'
@@ -504,6 +513,7 @@ export default {
     GOOGLE_TOKEN_INVALID: 'Token login Google tidak valid atau sudah kedaluwarsa.',
     EMAIL_NOT_WHITELISTED: 'Email Google Anda belum terdaftar di whitelist Data Pengguna atau Data Anggota. Hubungi Administrator keluarga.',
     ACCOUNT_INACTIVE: 'Akun pengguna Anda sedang dinonaktifkan oleh Administrator.',
-    EMAIL_EXISTS: 'Alamat email tersebut sudah digunakan oleh akun atau profil anggota lain.'
+    EMAIL_EXISTS: 'Alamat email tersebut sudah digunakan oleh akun atau profil anggota lain.',
+    EMAIL_REQUIRED_NO_PASSWORD: 'Akun tanpa password lokal wajib tetap menautkan email Google. Pasang password lokal terlebih dahulu bila ingin melepas email.'
   }
 };

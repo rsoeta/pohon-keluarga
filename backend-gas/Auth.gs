@@ -383,6 +383,54 @@ function Auth_me_(ctx) {
   return { user: ctx.user, anggota: anggota, expires_at: new Date(ctx.claims.exp).toISOString() };
 }
 
+function Auth_updateEmail_(ctx, p) {
+  var row = Db.findOne(SHEET.PENGGUNA, 'id_user', ctx.user.id_user);
+  if (!row) throw ERR.unauthorized();
+
+  var nextEmail = normalizeEmail_(hasOwn_(p, 'email') ? p.email : '');
+  if (nextEmail === null) throw ERR.validation([{ field: 'email', rule: 'email' }]);
+
+  if (!nextEmail && !hasLocalPassword_(row)) {
+    throw ERR.conflict('EMAIL_REQUIRED_NO_PASSWORD');
+  }
+
+  if (nextEmail) {
+    var conflictUser = Db.rows(SHEET.PENGGUNA).some(function (u) {
+      return u.id_user !== row.id_user && normalizeEmail_(u.email) === nextEmail;
+    });
+    if (conflictUser) throw ERR.conflict('EMAIL_EXISTS');
+
+    var conflictAnggota = Db.rows(SHEET.ANGGOTA).some(function (a) {
+      return !a.is_deleted && a.id_anggota !== (row.id_anggota || '') && normalizeEmail_(a.email) === nextEmail;
+    });
+    if (conflictAnggota) throw ERR.conflict('EMAIL_EXISTS');
+  }
+
+  var prevUserEmail = normalizeEmail_(row.email || '') || '';
+  var changed = false;
+  if (prevUserEmail !== nextEmail) {
+    Db.update(SHEET.PENGGUNA, row, { email: nextEmail });
+    changed = true;
+  }
+
+  if (row.id_anggota) {
+    var myAnggota = Db.findOne(SHEET.ANGGOTA, 'id_anggota', row.id_anggota);
+    if (myAnggota && !myAnggota.is_deleted) {
+      var prevAnggotaEmail = normalizeEmail_(myAnggota.email || '') || '';
+      if (prevAnggotaEmail !== nextEmail) {
+        Db.update(SHEET.ANGGOTA, myAnggota, { email: nextEmail, updated_at: nowIso_() });
+        changed = true;
+      }
+    }
+  }
+
+  if (changed) {
+    logActivity_(ctx, 'UPDATE', row.id_user, { entitas: 'pengguna', perubahan: ['email'] });
+  }
+
+  return { user: publicUser_(row), changed: changed };
+}
+
 function Auth_changePassword_(ctx, p) {
   var row = Db.findOne(SHEET.PENGGUNA, 'id_user', ctx.user.id_user);
   if (!row) throw ERR.unauthorized();

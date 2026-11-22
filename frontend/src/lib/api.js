@@ -99,6 +99,7 @@ export const api = {
     login: (payload) => apiPost('auth.login', payload, { token: '' }),
     googleLogin: (payload) => apiPost('auth.googleLogin', payload, { token: '' }),
     me: () => apiPost('auth.me', {}),
+    updateEmail: (email) => apiPost('auth.updateEmail', { email }),
     changePassword: (payload) => apiPost('auth.changePassword', payload),
     logoutAll: () => apiPost('auth.logoutAll', {})
   },

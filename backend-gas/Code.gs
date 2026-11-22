@@ -106,6 +106,7 @@ function getRoutes_() {
     'auth.login':            { auth: 'public', write: false, handler: Auth_login_ },
     'auth.googleLogin':      { auth: 'public', write: true,  handler: Auth_googleLogin_ },
     'auth.me':               { auth: 'user',   write: false, handler: Auth_me_ },
+    'auth.updateEmail':      { auth: 'user',   write: true,  handler: Auth_updateEmail_ },
     'auth.changePassword':   { auth: 'user',   write: true,  handler: Auth_changePassword_ },
     'auth.logoutAll':        { auth: 'user',   write: true,  handler: Auth_logoutAll_ },
 

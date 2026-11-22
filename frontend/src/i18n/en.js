@@ -86,6 +86,15 @@ export default {
     gedcomImportBtn: 'Import GEDCOM (.ged)',
     gedcomImportDesc: 'Bulk-upload genealogy files safely with preview validation.',
     securityTitle: 'Account Security',
+    googleEmailTitle: 'Google Email (OAuth Login)',
+    googleEmailHint: 'Register your personal Google email so you can sign in via the Google OAuth button.',
+    googleEmailPlaceholder: 'name@gmail.com',
+    googleEmailLinked: 'Linked',
+    googleEmailUnlinked: 'Not Linked',
+    saveEmailBtn: 'Save Email',
+    emailSaved: 'Your personal Google email is now whitelisted!',
+    emailRemoved: 'Google email link removed.',
+    emailRemoveConfirm: 'Remove your personal Google email link from this account? You will no longer be able to sign in with Google using this email.',
     logoutBtn: 'Sign Out',
     logoutAllBtn: 'Sign Out All Devices',
     savePasswordBtn: 'Save New Password'
@@ -504,6 +513,7 @@ export default {
     GOOGLE_TOKEN_INVALID: 'Google sign-in token is invalid or expired.',
     EMAIL_NOT_WHITELISTED: 'Your Google email is not registered in the Users or Members whitelist. Please contact your Family Administrator.',
     ACCOUNT_INACTIVE: 'Your user account has been disabled by the Administrator.',
-    EMAIL_EXISTS: 'This email address is already linked to another user account or member profile.'
+    EMAIL_EXISTS: 'This email address is already linked to another user account or member profile.',
+    EMAIL_REQUIRED_NO_PASSWORD: 'Accounts without a local password must keep a linked Google email. Set a local password first before removing your email.'
   }
 };

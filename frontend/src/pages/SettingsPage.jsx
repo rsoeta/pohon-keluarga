@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import {
@@ -11,6 +11,7 @@ import {
   Globe,
   KeyRound,
   LogOut,
+  Mail,
   Moon,
   RefreshCw,
   Shield,
@@ -39,6 +40,7 @@ export function SettingsPage() {
     isOnline,
     logout,
     logoutAll,
+    updateEmail,
     changePassword,
     triggerSync
   } = useAuth();
@@ -54,11 +56,18 @@ export function SettingsPage() {
     [user?.id_anggota]
   );
 
+  const [emailInput, setEmailInput] = useState(user?.email || '');
+  const [savingEmail, setSavingEmail] = useState(false);
+
   const [oldPw, setOldPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [savingPw, setSavingPw] = useState(false);
+
+  useEffect(() => {
+    setEmailInput(user?.email || '');
+  }, [user?.email]);
 
   const handleSync = async (forceFull) => {
     const res = await triggerSync({ forceFull, silent: false });
@@ -66,6 +75,46 @@ export function SettingsPage() {
   };
 
   const hasLocalPassword = user?.has_password !== false;
+
+  const handleEmailSubmit = async (e) => {
+    e.preventDefault();
+    const cleanEmail = emailInput.trim().toLowerCase();
+    if (cleanEmail && !/^[^\s@<>'"]+@[^\s@<>'"]+\.[^\s@<>'"]+$/.test(cleanEmail)) {
+      await alertError(t('settings.googleEmailTitle'), t('form.invalidEmail'));
+      return;
+    }
+    if (!cleanEmail && !hasLocalPassword) {
+      await alertError(t('settings.googleEmailTitle'), t('errors.EMAIL_REQUIRED_NO_PASSWORD'));
+      return;
+    }
+    if (!cleanEmail && !user?.email) {
+      await alertError(t('common.requiredFields'));
+      return;
+    }
+    if (!cleanEmail && user?.email) {
+      const ok = await confirmAction({
+        title: t('settings.googleEmailTitle'),
+        text: t('settings.emailRemoveConfirm'),
+        confirmText: t('common.confirm'),
+        cancelText: t('common.cancel'),
+        danger: true
+      });
+      if (!ok) return;
+    }
+
+    setSavingEmail(true);
+    try {
+      await updateEmail(cleanEmail);
+      if (user?.id_anggota) {
+        await triggerSync({ forceFull: false, silent: true });
+      }
+      toastSuccess(cleanEmail ? t('settings.emailSaved') : t('settings.emailRemoved'));
+    } catch (err) {
+      await alertError(t('settings.googleEmailTitle'), translateError(err));
+    } finally {
+      setSavingEmail(false);
+    }
+  };
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
@@ -364,6 +413,46 @@ export function SettingsPage() {
                   {t('settings.securityTitle')}
                 </h2>
               </div>
+
+              <form onSubmit={handleEmailSubmit} className="space-y-1.5 pb-3 border-b border-line" noValidate>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label htmlFor="settings-email" className="text-sm font-bold text-ink inline-flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5 text-brand-700 dark:text-brand-300 shrink-0" aria-hidden="true" />
+                    <span>{t('settings.googleEmailTitle')}</span>
+                  </label>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-bold ${
+                      user?.email
+                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                        : 'bg-surface-2 border border-line text-muted'
+                    }`}
+                  >
+                    {user?.email ? t('settings.googleEmailLinked') : t('settings.googleEmailUnlinked')}
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
+                  <input
+                    id="settings-email"
+                    type="email"
+                    maxLength={160}
+                    autoComplete="email"
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    placeholder={t('settings.googleEmailPlaceholder')}
+                    className="flex-1 min-w-0 min-h-ctl px-3.5 py-1.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={savingEmail || !isOnline}
+                    className="w-full sm:w-auto min-h-ctl px-4 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold text-xs sm:text-sm transition-colors shadow-sm shrink-0"
+                  >
+                    {savingEmail ? t('common.saving') : t('settings.saveEmailBtn')}
+                  </button>
+                </div>
+
+                <p className="text-[0.6875rem] text-muted">{t('settings.googleEmailHint')}</p>
+              </form>
 
               <form onSubmit={handlePasswordSubmit} className="space-y-2.5" noValidate>
                 <p className="text-sm font-bold text-ink">{t('auth.changePasswordTitle')}</p>
