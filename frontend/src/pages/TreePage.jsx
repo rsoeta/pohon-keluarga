@@ -28,6 +28,7 @@ import { SegmentedPillControl } from '../components/common/SegmentedPillControl.
 
 const MIN_SCALE = 0.35;
 const MAX_SCALE = 1.8;
+const DRAG_THRESHOLD_PX = 6;
 const MOBILE_TABLET_MQ = '(max-width: 1024px)';
 
 function getDefaultTreeOrientation() {
@@ -64,6 +65,8 @@ export function TreePage() {
   const pointersRef = useRef(new Map());
   const dragMovedRef = useRef(false);
   const pinchStartRef = useRef(null);
+  const capturedPointerIdRef = useRef(null);
+  const suppressClickUntilRef = useRef(0);
 
   const handleOrientationChange = useCallback((next) => {
     manualOrientationRef.current = true;
@@ -149,16 +152,35 @@ export function TreePage() {
     setSearchParams({ focus: id });
   };
 
-  // Pan & Pinch-to-Zoom via Pointer Events
+  // Bersihkan pointer & status interaksi kanvas setelah drag/zoom berakhir
+  const clearPointerState = useCallback((pointerId) => {
+    const hadPointer = pointersRef.current.delete(pointerId);
+    if (pointersRef.current.size < 2) pinchStartRef.current = null;
+    if (pointersRef.current.size === 0) {
+      if (hadPointer && dragMovedRef.current) {
+        suppressClickUntilRef.current = Date.now() + 120;
+      }
+      dragMovedRef.current = false;
+      setIsInteracting(false);
+    }
+  }, []);
+
+  // Pan & Pinch-to-Zoom via Pointer Events (capture ditunda hingga drag melewati ambang agar klik kartu di desktop bekerja)
   const handlePointerDown = (e) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
     if (e.target.closest('button, a')) return;
-    e.currentTarget.setPointerCapture?.(e.pointerId);
-    setIsInteracting(true);
-    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    pointersRef.current.set(e.pointerId, {
+      x: e.clientX,
+      y: e.clientY,
+      startX: e.clientX,
+      startY: e.clientY
+    });
     if (pointersRef.current.size === 1) {
       dragMovedRef.current = false;
       pinchStartRef.current = null;
     } else if (pointersRef.current.size === 2) {
+      dragMovedRef.current = true;
+      setIsInteracting(true);
       const pts = [...pointersRef.current.values()];
       const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y) || 1;
       pinchStartRef.current = { dist, scale };
@@ -168,15 +190,31 @@ export function TreePage() {
   const handlePointerMove = (e) => {
     const prev = pointersRef.current.get(e.pointerId);
     if (!prev) return;
-    const next = { x: e.clientX, y: e.clientY };
-    pointersRef.current.set(e.pointerId, next);
+    if (e.pointerType === 'mouse' && e.buttons === 0) {
+      handlePointerUp(e);
+      return;
+    }
+    const nextX = e.clientX;
+    const nextY = e.clientY;
 
     if (pointersRef.current.size === 1) {
-      const dx = next.x - prev.x;
-      const dy = next.y - prev.y;
-      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) dragMovedRef.current = true;
+      if (!dragMovedRef.current) {
+        if (Math.hypot(nextX - prev.startX, nextY - prev.startY) <= DRAG_THRESHOLD_PX) return;
+        dragMovedRef.current = true;
+        setIsInteracting(true);
+        try {
+          e.currentTarget.setPointerCapture?.(e.pointerId);
+          capturedPointerIdRef.current = e.pointerId;
+        } catch {
+          // Abaikan jika browser menolak capture pada pointer ini
+        }
+      }
+      const dx = nextX - prev.x;
+      const dy = nextY - prev.y;
+      pointersRef.current.set(e.pointerId, { ...prev, x: nextX, y: nextY });
       setPan((p) => ({ x: p.x + dx, y: p.y + dy }));
     } else if (pointersRef.current.size === 2 && pinchStartRef.current) {
+      pointersRef.current.set(e.pointerId, { ...prev, x: nextX, y: nextY });
       const pts = [...pointersRef.current.values()];
       const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y) || 1;
       const ratio = dist / pinchStartRef.current.dist;
@@ -185,9 +223,30 @@ export function TreePage() {
   };
 
   const handlePointerUp = (e) => {
-    pointersRef.current.delete(e.pointerId);
-    if (pointersRef.current.size < 2) pinchStartRef.current = null;
-    if (pointersRef.current.size === 0) setIsInteracting(false);
+    if (capturedPointerIdRef.current === e.pointerId) {
+      try {
+        if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
+          e.currentTarget.releasePointerCapture?.(e.pointerId);
+        }
+      } catch {
+        // Abaikan jika capture sudah dilepas
+      }
+      capturedPointerIdRef.current = null;
+    }
+    clearPointerState(e.pointerId);
+  };
+
+  const handlePointerLeave = (e) => {
+    if (e.pointerType === 'mouse' && capturedPointerIdRef.current !== e.pointerId && !dragMovedRef.current) {
+      pointersRef.current.delete(e.pointerId);
+    }
+  };
+
+  const handleLostPointerCapture = (e) => {
+    if (capturedPointerIdRef.current === e.pointerId) {
+      capturedPointerIdRef.current = null;
+    }
+    clearPointerState(e.pointerId);
   };
 
   const zoomBy = (delta) => {
@@ -356,8 +415,12 @@ export function TreePage() {
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
+        onPointerLeave={handlePointerLeave}
+        onLostPointerCapture={handleLostPointerCapture}
         onWheel={handleWheel}
-        className="relative flex-1 w-full min-h-[calc(100dvh-12.5rem)] rounded-card border border-line bg-surface shadow-card overflow-hidden touch-none select-none cursor-grab active:cursor-grabbing"
+        className={`relative flex-1 w-full min-h-[calc(100dvh-12.5rem)] rounded-card border border-line bg-surface shadow-card overflow-hidden touch-none select-none ${
+          isInteracting ? 'cursor-grabbing' : 'cursor-grab'
+        }`}
         style={{
           backgroundImage:
             'radial-gradient(circle, rgba(13,92,85,0.16) 1px, transparent 1px)',
@@ -432,12 +495,16 @@ export function TreePage() {
                   width: node.width,
                   height: node.height
                 }}
-                onClick={() => {
-                  if (!dragMovedRef.current) openMemberDrawer(p.id_anggota);
+                onClick={(e) => {
+                  if (e.target.closest('button, a')) return;
+                  if (dragMovedRef.current || Date.now() < suppressClickUntilRef.current) return;
+                  openMemberDrawer(p.id_anggota);
                 }}
                 role="button"
                 tabIndex={0}
+                aria-label={`${p.nama_lengkap} (${formatKodeUnik(p.kode_unik)})`}
                 onKeyDown={(e) => {
+                  if (e.target.closest('button, a')) return;
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     openMemberDrawer(p.id_anggota);
