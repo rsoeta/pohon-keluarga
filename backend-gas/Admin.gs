@@ -6,6 +6,7 @@
 var SETTINGS_KEYS_ = Object.freeze([
   'nama_keluarga',
   'id_leluhur_utama',
+  'font_family',
   'wa_aktif',
   'wa_provider',
   'wa_gateway_url',
@@ -72,6 +73,13 @@ function Admin_updateSettings_(ctx, p) {
         errors.push({ field: k, rule: 'exists' });
       } else {
         updates[k] = aid;
+      }
+    } else if (k === 'font_family') {
+      var ff = typeof v === 'string' ? v.replace(/ +/g, ' ').trim() : '';
+      if (!ff || !/^[A-Za-z][A-Za-z0-9 ]{1,49}$/.test(ff)) {
+        errors.push({ field: k, rule: 'format' });
+      } else {
+        updates[k] = ff;
       }
     } else if (k === 'wa_aktif') {
       if (!isBoolLike_(v)) errors.push({ field: k, rule: 'boolean' });

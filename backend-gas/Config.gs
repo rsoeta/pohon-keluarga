@@ -135,6 +135,7 @@ var SCHEMA = {
 var DEFAULT_SETTINGS = Object.freeze({
   nama_keluarga: 'Keluarga Besar',
   id_leluhur_utama: '',
+  font_family: 'Barlow Semi Condensed',
   wa_aktif: 'false',
   wa_provider: 'fonnte',
   wa_gateway_url: 'https://api.fonnte.com/send',
@@ -144,7 +145,7 @@ var DEFAULT_SETTINGS = Object.freeze({
 });
 
 /** Pengaturan yang boleh dibaca semua pengguna login. */
-var PUBLIC_SETTING_KEYS = Object.freeze(['nama_keluarga', 'id_leluhur_utama']);
+var PUBLIC_SETTING_KEYS = Object.freeze(['nama_keluarga', 'id_leluhur_utama', 'font_family']);
 
 /** Kolom Data_Anggota yang boleh diisi klien (whitelist anti mass-assignment). */
 var ANGGOTA_INPUT_FIELDS = Object.freeze([

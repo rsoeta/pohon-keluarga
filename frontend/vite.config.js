@@ -59,7 +59,7 @@ export default defineConfig({
             options: {
               cacheName: 'google-fonts-stylesheets',
               expiration: {
-                maxEntries: 10,
+                maxEntries: 20,
                 maxAgeSeconds: 60 * 60 * 24 * 30
               }
             }
@@ -73,7 +73,7 @@ export default defineConfig({
                 statuses: [0, 200]
               },
               expiration: {
-                maxEntries: 20,
+                maxEntries: 40,
                 maxAgeSeconds: 60 * 60 * 24 * 365
               }
             }

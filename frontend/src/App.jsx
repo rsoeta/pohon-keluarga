@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext.jsx';
+import { FontProvider } from './contexts/FontContext.jsx';
 import { I18nProvider } from './contexts/I18nContext.jsx';
 import { AuthProvider } from './contexts/AuthContext.jsx';
 import { AdminRoute, ProtectedRoute } from './components/auth/ProtectedRoute.jsx';
@@ -17,35 +18,37 @@ import { GedcomImportPage } from './pages/GedcomImportPage.jsx';
 export default function App() {
   return (
     <ThemeProvider>
-      <I18nProvider>
-        <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
+      <FontProvider>
+        <I18nProvider>
+          <AuthProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
 
-              <Route element={<ProtectedRoute />}>
-                <Route element={<AppShell />}>
-                  <Route index element={<Navigate to="/pohon" replace />} />
-                  <Route path="/pohon" element={<TreePage />} />
-                  <Route path="/daftar" element={<DirectoryPage />} />
-                  <Route path="/profil/:id" element={<ProfileDetailPage />} />
-                  <Route path="/tambah" element={<MemberFormPage />} />
-                  <Route path="/edit/:id" element={<MemberFormPage />} />
-                  <Route path="/ultah" element={<BirthdaysPage />} />
-                  <Route path="/setelan" element={<SettingsPage />} />
+                <Route element={<ProtectedRoute />}>
+                  <Route element={<AppShell />}>
+                    <Route index element={<Navigate to="/pohon" replace />} />
+                    <Route path="/pohon" element={<TreePage />} />
+                    <Route path="/daftar" element={<DirectoryPage />} />
+                    <Route path="/profil/:id" element={<ProfileDetailPage />} />
+                    <Route path="/tambah" element={<MemberFormPage />} />
+                    <Route path="/edit/:id" element={<MemberFormPage />} />
+                    <Route path="/ultah" element={<BirthdaysPage />} />
+                    <Route path="/setelan" element={<SettingsPage />} />
 
-                  <Route element={<AdminRoute />}>
-                    <Route path="/admin" element={<AdminPanelPage />} />
-                    <Route path="/admin/gedcom" element={<GedcomImportPage />} />
+                    <Route element={<AdminRoute />}>
+                      <Route path="/admin" element={<AdminPanelPage />} />
+                      <Route path="/admin/gedcom" element={<GedcomImportPage />} />
+                    </Route>
                   </Route>
                 </Route>
-              </Route>
 
-              <Route path="*" element={<Navigate to="/pohon" replace />} />
-            </Routes>
-          </BrowserRouter>
-        </AuthProvider>
-      </I18nProvider>
+                <Route path="*" element={<Navigate to="/pohon" replace />} />
+              </Routes>
+            </BrowserRouter>
+          </AuthProvider>
+        </I18nProvider>
+      </FontProvider>
     </ThemeProvider>
   );
 }

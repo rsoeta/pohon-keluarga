@@ -5,8 +5,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        // sans: ['Quicksand', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
-        sans: ['"Barlow Semi Condensed"', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif']
+        sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif']
       },
       colors: {
         brand: {

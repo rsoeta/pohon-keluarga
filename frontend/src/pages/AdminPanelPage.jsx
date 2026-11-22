@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import {
   BarChart3,
+  Check,
   Copy,
   FileUp,
   KeyRound,
@@ -14,15 +15,33 @@ import {
   Shield,
   Sparkles,
   Trash2,
+  Type,
   UserPlus,
   Users
 } from 'lucide-react';
 import { db } from '../db/dexie.js';
 import { api } from '../lib/api.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import { useFont } from '../contexts/FontContext.jsx';
 import { useI18n } from '../contexts/I18nContext.jsx';
 import { alertError, alertSuccess, confirmAction, promptInput, toastSuccess } from '../lib/swal.js';
 import { SegmentedPillControl } from '../components/common/SegmentedPillControl.jsx';
+import {
+  buildCssFontStack,
+  DEFAULT_FONT_FAMILY,
+  FONT_PRESETS,
+  isPresetFont,
+  loadPreviewFont,
+  resolveFontFamily,
+  sanitizeFontName,
+  SYSTEM_FONT_VALUE
+} from '../lib/fonts.js';
+
+const VALID_ADMIN_TABS = new Set(['stats', 'users', 'wa', 'deleted']);
+function resolveAdminTabParam(raw) {
+  if (raw === 'settings' || raw === 'wa') return 'wa';
+  return VALID_ADMIN_TABS.has(raw) ? raw : 'stats';
+}
 
 function generateSecureTempPassword(length = 12) {
   const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -46,7 +65,11 @@ function generateSecureTempPassword(length = 12) {
 
 export function AdminPanelPage() {
   const { isOnline, triggerSync } = useAuth();
-  const { t, translateError } = useI18n();
+  const { fontFamily, setFontFamily } = useFont();
+  const { lang, t, translateError } = useI18n();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const fontFamilyRef = useRef(fontFamily);
+  fontFamilyRef.current = fontFamily;
 
   const anggotaList = useLiveQuery(() => db.anggota.toArray(), [], []);
   const activeMembers = useMemo(
@@ -63,8 +86,22 @@ export function AdminPanelPage() {
     return m;
   }, [anggotaList]);
 
-  const [tab, setTab] = useState('stats'); // stats | users | wa | deleted
+  const [tab, setTabState] = useState(() => resolveAdminTabParam(searchParams.get('tab')));
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const raw = searchParams.get('tab');
+    if (raw) setTabState(resolveAdminTabParam(raw));
+  }, [searchParams]);
+
+  const setTab = useCallback(
+    (nextTab) => {
+      const normalized = resolveAdminTabParam(nextTab);
+      setTabState(normalized);
+      setSearchParams(normalized === 'stats' ? {} : { tab: normalized }, { replace: true });
+    },
+    [setSearchParams]
+  );
 
   // Tab Stats
   const [stats, setStats] = useState(null);
@@ -78,10 +115,11 @@ export function AdminPanelPage() {
   const [newAnggotaId, setNewAnggotaId] = useState('');
   const [creatingUser, setCreatingUser] = useState(false);
 
-  // Tab Settings & WA
+  // Tab Settings, Font & WA
   const [settingsForm, setSettingsForm] = useState({
     nama_keluarga: '',
     id_leluhur_utama: '',
+    font_family: fontFamily || DEFAULT_FONT_FAMILY,
     wa_aktif: 'false',
     wa_provider: 'fonnte',
     wa_gateway_url: 'https://api.fonnte.com/send',
@@ -89,6 +127,13 @@ export function AdminPanelPage() {
     wa_jam_trigger: '6',
     wa_template: '',
     wa_token_configured: false
+  });
+  const [fontMode, setFontMode] = useState(() =>
+    isPresetFont(fontFamily || DEFAULT_FONT_FAMILY) ? 'preset' : 'custom'
+  );
+  const [customFontInput, setCustomFontInput] = useState(() => {
+    const initial = resolveFontFamily(fontFamily || DEFAULT_FONT_FAMILY);
+    return isPresetFont(initial) ? '' : initial;
   });
   const [waTokenInput, setWaTokenInput] = useState('');
   const [savingSettings, setSavingSettings] = useState(false);
@@ -119,9 +164,11 @@ export function AdminPanelPage() {
           setUserDrafts(drafts);
         } else if (targetTab === 'wa') {
           const res = await api.admin.settingsGet();
+          const loadedFont = resolveFontFamily(res.font_family || fontFamilyRef.current);
           setSettingsForm({
             nama_keluarga: res.nama_keluarga || '',
             id_leluhur_utama: res.id_leluhur_utama || '',
+            font_family: loadedFont,
             wa_aktif: String(res.wa_aktif || 'false'),
             wa_provider: res.wa_provider || 'fonnte',
             wa_gateway_url: res.wa_gateway_url || '',
@@ -130,6 +177,9 @@ export function AdminPanelPage() {
             wa_template: res.wa_template || '',
             wa_token_configured: Boolean(res.wa_token_configured)
           });
+          const presetMatch = isPresetFont(loadedFont);
+          setFontMode(presetMatch ? 'preset' : 'custom');
+          setCustomFontInput(presetMatch ? '' : loadedFont);
         } else if (targetTab === 'deleted') {
           const res = await api.anggota.listDeleted();
           setDeletedData({
@@ -149,6 +199,17 @@ export function AdminPanelPage() {
   useEffect(() => {
     loadTabData(tab);
   }, [tab, loadTabData]);
+
+  const previewFontName =
+    fontMode === 'custom'
+      ? sanitizeFontName(customFontInput)
+      : sanitizeFontName(settingsForm.font_family);
+
+  useEffect(() => {
+    if (tab === 'wa' && previewFontName) {
+      loadPreviewFont(previewFontName);
+    }
+  }, [tab, previewFontName]);
 
   // Handler Users
   const handleCreateUser = async (e) => {
@@ -250,14 +311,24 @@ export function AdminPanelPage() {
     }
   };
 
-  // Handler Settings & WA
+  // Handler Settings, Font & WA
   const handleSaveSettings = async (e) => {
     e.preventDefault();
+    const finalFont =
+      fontMode === 'custom'
+        ? sanitizeFontName(customFontInput)
+        : sanitizeFontName(settingsForm.font_family);
+    if (!finalFont) {
+      await alertError(t('admin.fontSectionTitle'), t('admin.fontInvalidFormat'));
+      return;
+    }
+
     setSavingSettings(true);
     try {
       const updated = await api.admin.settingsUpdate({
         nama_keluarga: settingsForm.nama_keluarga,
         id_leluhur_utama: settingsForm.id_leluhur_utama,
+        font_family: finalFont,
         wa_aktif: settingsForm.wa_aktif === 'true',
         wa_provider: settingsForm.wa_provider,
         wa_gateway_url: settingsForm.wa_gateway_url,
@@ -265,12 +336,18 @@ export function AdminPanelPage() {
         wa_jam_trigger: Number(settingsForm.wa_jam_trigger),
         wa_template: settingsForm.wa_template
       });
+      const appliedFont = resolveFontFamily(updated?.font_family || finalFont);
+      setFontFamily(appliedFont);
       setSettingsForm((prev) => ({
         ...prev,
         ...updated,
+        font_family: appliedFont,
         wa_aktif: String(updated.wa_aktif),
         wa_jam_trigger: String(updated.wa_jam_trigger)
       }));
+      const presetMatch = isPresetFont(appliedFont);
+      setFontMode(presetMatch ? 'preset' : 'custom');
+      if (!presetMatch) setCustomFontInput(appliedFont);
       await triggerSync({ forceFull: false, silent: true });
       toastSuccess(t('admin.settingsSaved'));
     } catch (err) {
@@ -647,6 +724,139 @@ export function AdminPanelPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Pengaturan Tipografi / Font Aplikasi Global */}
+            <div className="p-3.5 rounded-tile bg-surface-2 border border-line space-y-3">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2 text-xs font-bold text-ink">
+                    <Type className="w-4 h-4 text-brand-700 dark:text-brand-300 shrink-0" aria-hidden="true" />
+                    <span>{t('admin.fontSectionTitle')}</span>
+                  </div>
+                  <p className="text-xs text-muted">{t('admin.fontSectionHint')}</p>
+                </div>
+
+                <SegmentedPillControl
+                  ariaLabel={t('admin.fontSectionTitle')}
+                  value={fontMode}
+                  onChange={(mode) => {
+                    setFontMode(mode);
+                    if (mode === 'preset') {
+                      const candidate = sanitizeFontName(settingsForm.font_family);
+                      const nextPreset = isPresetFont(candidate)
+                        ? resolveFontFamily(candidate)
+                        : DEFAULT_FONT_FAMILY;
+                      setSettingsForm((s) => ({ ...s, font_family: nextPreset }));
+                    } else {
+                      setCustomFontInput((prev) =>
+                        prev || (isPresetFont(settingsForm.font_family) ? '' : settingsForm.font_family)
+                      );
+                    }
+                  }}
+                  tone="brand"
+                  className="bg-surface"
+                  options={[
+                    { value: 'preset', label: t('admin.fontModePreset') },
+                    { value: 'custom', label: t('admin.fontModeCustom') }
+                  ]}
+                />
+              </div>
+
+              {fontMode === 'preset' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {FONT_PRESETS.map((preset) => {
+                    const selected =
+                      sanitizeFontName(settingsForm.font_family).toLowerCase() === preset.name.toLowerCase();
+                    const displayLabel =
+                      preset.name === SYSTEM_FONT_VALUE ? t('admin.fontSystemName') : preset.name;
+                    const tagText = lang === 'en' ? preset.tagEn : preset.tagId;
+                    return (
+                      <button
+                        key={preset.name}
+                        type="button"
+                        onClick={() => setSettingsForm((s) => ({ ...s, font_family: preset.name }))}
+                        aria-pressed={selected}
+                        className={`text-left px-3 py-2.5 rounded-tile border transition-colors flex items-center justify-between gap-2 ${
+                          selected
+                            ? 'bg-brand-50/90 dark:bg-brand-950/50 border-brand-600 dark:border-brand-400 text-ink shadow-sm'
+                            : 'bg-surface border-line hover:bg-[var(--well)] text-ink'
+                        }`}
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold truncate">{displayLabel}</p>
+                          <p className="text-[0.6875rem] font-medium text-muted truncate">
+                            {preset.designer} · {tagText}
+                          </p>
+                        </div>
+                        {selected && (
+                          <span className="w-5 h-5 rounded-full bg-brand-700 text-white flex items-center justify-center shrink-0">
+                            <Check className="w-3 h-3" aria-hidden="true" />
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <label htmlFor="admin-custom-font" className="block text-xs font-bold text-muted">
+                    {t('admin.fontCustomLabel')}
+                  </label>
+                  <input
+                    id="admin-custom-font"
+                    type="text"
+                    maxLength={50}
+                    value={customFontInput}
+                    onChange={(e) => setCustomFontInput(e.target.value)}
+                    placeholder={t('admin.fontCustomPlaceholder')}
+                    className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface text-ink placeholder:text-faint text-sm font-semibold"
+                  />
+                  <p
+                    className={`text-xs font-medium ${
+                      customFontInput.trim() && !sanitizeFontName(customFontInput)
+                        ? 'text-rose-700 dark:text-rose-300'
+                        : 'text-muted'
+                    }`}
+                  >
+                    {customFontInput.trim() && !sanitizeFontName(customFontInput)
+                      ? t('admin.fontInvalidFormat')
+                      : t('admin.fontCustomHint')}
+                  </p>
+                </div>
+              )}
+
+              {(() => {
+                const previewTarget = previewFontName || fontFamily;
+                const isActiveFont = resolveFontFamily(previewTarget) === fontFamily;
+                const previewLabel =
+                  previewTarget === SYSTEM_FONT_VALUE ? t('admin.fontSystemName') : previewTarget;
+                return (
+                  <div
+                    className="p-3 rounded-tile bg-surface border border-line space-y-1"
+                    style={{ fontFamily: buildCssFontStack(previewTarget) }}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-[0.6875rem]">
+                      <span className="font-bold uppercase tracking-wider text-faint">
+                        {t('admin.fontPreviewLabel')} · {previewLabel}
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full font-bold ${
+                          isActiveFont
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                            : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200'
+                        }`}
+                      >
+                        {isActiveFont ? t('admin.fontPreviewActive') : t('admin.fontPreviewUnsaved')}
+                      </span>
+                    </div>
+                    <p className="text-base font-bold text-ink truncate">
+                      {settingsForm.nama_keluarga || t('app.name')}
+                    </p>
+                    <p className="text-sm font-medium text-muted">{t('admin.fontPreviewSample')}</p>
+                  </div>
+                );
+              })()}
             </div>
 
             <label className="min-h-touch flex items-center gap-3 cursor-pointer">

@@ -17,15 +17,18 @@ import {
   ShieldCheck,
   Smartphone,
   Sun,
+  Type,
   UserCheck
 } from 'lucide-react';
 import { db } from '../db/dexie.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useTheme } from '../contexts/ThemeContext.jsx';
+import { useFont } from '../contexts/FontContext.jsx';
 import { useI18n } from '../contexts/I18nContext.jsx';
 import { usePwaInstall } from '../hooks/usePwaInstall.js';
 import { alertError, alertSuccess, confirmAction, toastSuccess } from '../lib/swal.js';
 import { SegmentedPillControl } from '../components/common/SegmentedPillControl.jsx';
+import { SYSTEM_FONT_VALUE } from '../lib/fonts.js';
 
 export function SettingsPage() {
   const {
@@ -40,6 +43,7 @@ export function SettingsPage() {
     triggerSync
   } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const { fontFamily } = useFont();
   const { lang, setLang, t, translateError } = useI18n();
   const { canInstall, isStandalone, promptInstall } = usePwaInstall();
 
@@ -201,6 +205,38 @@ export function SettingsPage() {
             {isDark ? <Moon className="w-4 h-4 text-amber-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
             <span>{isDark ? t('theme.dark') : t('theme.light')}</span>
           </button>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-line">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Type className="w-5 h-5 text-brand-700 dark:text-brand-300 shrink-0" aria-hidden="true" />
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-ink">{t('settings.fontLabel')}</p>
+              {!isAdmin && (
+                <p className="text-[0.6875rem] font-medium text-muted">{t('settings.fontManagedByAdmin')}</p>
+              )}
+            </div>
+          </div>
+
+          {isAdmin ? (
+            <Link
+              to="/admin?tab=settings"
+              className="min-h-ctl px-3.5 rounded-full border border-line bg-surface-2 text-xs sm:text-sm font-bold text-ink inline-flex items-center gap-1.5 hover:bg-[var(--well)] transition-colors max-w-full"
+            >
+              <span className="truncate max-w-[10rem]">
+                {fontFamily === SYSTEM_FONT_VALUE ? t('admin.fontSystemName') : fontFamily}
+              </span>
+              <span className="text-brand-700 dark:text-brand-300">· {t('settings.manageFontBtn')}</span>
+              <ChevronRight className="w-4 h-4 text-faint shrink-0" />
+            </Link>
+          ) : (
+            <span
+              title={t('settings.fontManagedByAdmin')}
+              className="min-h-ctl px-3.5 rounded-full border border-line bg-surface-2 text-xs sm:text-sm font-bold text-muted inline-flex items-center max-w-full truncate"
+            >
+              {fontFamily === SYSTEM_FONT_VALUE ? t('admin.fontSystemName') : fontFamily}
+            </span>
+          )}
         </div>
 
         {(canInstall || isStandalone) && (
