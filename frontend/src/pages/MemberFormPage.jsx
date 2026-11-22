@@ -401,8 +401,10 @@ export function MemberFormPage() {
     );
   }
 
+  const hasEditExtras = isEdit && (editableMarriages.length > 0 || (canDelete(user) && Boolean(existing)));
+
   return (
-    <div className="space-y-4">
+    <div className="flex-1 flex flex-col gap-3.5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <button
           type="button"
@@ -412,425 +414,463 @@ export function MemberFormPage() {
           <ArrowLeft className="w-4 h-4" />
           <span>{t('common.back')}</span>
         </button>
-        <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-ink">
+        <h1 className="text-lg sm:text-xl font-bold tracking-tight text-ink">
           {isEdit ? t('form.editTitle') : t('form.addTitle')}
         </h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-        {/* Mode Tambah */}
-        {!isEdit && (
-          <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-2.5">
+      {/* Split-View Grid Desktop (5:7): Foto & Relasi (Kiri) + Biodata Utama (Kanan) */}
+      <div
+        className={`flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3.5 ${
+          hasEditExtras ? 'lg:grid-rows-[auto_1fr] items-stretch' : 'items-stretch'
+        }`}
+      >
+        {/* Blok A: Kolom Kiri (5 cols) — Mode Tambah, Foto Profil, Relasi */}
+        <div className="lg:col-span-5 flex flex-col gap-3.5 min-w-0">
+          {/* Mode Tambah */}
+          {!isEdit && (
+            <section className="bg-surface rounded-card border border-line p-3.5 sm:p-4 shadow-card space-y-2">
+              <p className="text-xs font-bold uppercase tracking-wider text-faint">
+                {t('form.modeLabel')}
+              </p>
+              <SegmentedPillControl
+                ariaLabel={t('form.modeLabel')}
+                value={addMode}
+                onChange={setAddMode}
+                fullWidth
+                tone="brand"
+                className="bg-surface-2"
+                buttonClassName="min-w-[6.5rem] sm:min-w-0 text-xs sm:text-[0.8125rem]"
+                options={
+                  !admin
+                    ? [
+                        { value: 'spouse', label: t('form.modeSelfSpouse') },
+                        { value: 'child', label: t('form.modeSelfChild') }
+                      ]
+                    : [
+                        { value: 'independent', label: t('form.modeIndependent') },
+                        { value: 'spouse', label: t('form.modeSpouseFor') },
+                        { value: 'child', label: t('form.modeChildFor') }
+                      ]
+                }
+              />
+            </section>
+          )}
+
+          {/* Unggah & Kompresi Foto Profil */}
+          <section className="bg-surface rounded-card border border-line p-3.5 sm:p-4 shadow-card space-y-2.5">
             <p className="text-xs font-bold uppercase tracking-wider text-faint">
-              {t('form.modeLabel')}
+              {t('form.photoSection')}
             </p>
-            <SegmentedPillControl
-              ariaLabel={t('form.modeLabel')}
-              value={addMode}
-              onChange={setAddMode}
-              fullWidth
-              tone="brand"
-              className="bg-surface-2"
-              buttonClassName="min-w-[8.5rem]"
-              options={
-                !admin
-                  ? [
-                      { value: 'spouse', label: t('form.modeSelfSpouse') },
-                      { value: 'child', label: t('form.modeSelfChild') }
-                    ]
-                  : [
-                      { value: 'independent', label: t('form.modeIndependent') },
-                      { value: 'spouse', label: t('form.modeSpouseFor') },
-                      { value: 'child', label: t('form.modeChildFor') }
-                    ]
-              }
-            />
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-3.5">
+              <MemberAvatar
+                fileId={removeExistingPhoto ? '' : existing?.foto_file_id || ''}
+                previewUrl={compressedPhoto?.data_url || ''}
+                name={namaLengkap || 'P K'}
+                gender={jenisKelamin}
+                isLiving={statusHidup}
+                size="xl"
+              />
+              <div className="flex-1 min-w-[11rem] space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  <label className="min-h-ctl px-3.5 py-1.5 rounded-full bg-brand-100/80 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-800 text-brand-800 dark:text-brand-200 text-xs font-bold inline-flex items-center gap-2 cursor-pointer hover:bg-brand-100">
+                    <Camera className="w-4 h-4" />
+                    <span>{t('form.choosePhoto')}</span>
+                    <input
+                      type="file"
+                      form="member-form"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handlePhotoSelect}
+                      className="sr-only"
+                    />
+                  </label>
+
+                  {(compressedPhoto || (isEdit && existing?.foto_file_id && !removeExistingPhoto)) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCompressedPhoto(null);
+                        if (existing?.foto_file_id) setRemoveExistingPhoto(true);
+                      }}
+                      className="min-h-ctl px-3 rounded-full border border-rose-300/80 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-bold inline-flex items-center gap-1 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                    >
+                      <X className="w-4 h-4" />
+                      <span>{t('form.removePhoto')}</span>
+                    </button>
+                  )}
+                </div>
+
+                <p className="text-xs text-muted">
+                  {compressedPhoto
+                    ? t('form.compressedInfo', {
+                        kb: Math.max(1, Math.round(compressedPhoto.size / 1024)),
+                        mime: compressedPhoto.mime_type
+                      })
+                    : removeExistingPhoto
+                    ? t('form.photoRemovedPending')
+                    : t('form.photoHint')}
+                </p>
+              </div>
+            </div>
           </section>
-        )}
 
-        {/* Unggah & Kompresi Foto Profil */}
-        <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3">
-          <p className="text-xs font-bold uppercase tracking-wider text-faint">
-            {t('form.photoSection')}
-          </p>
-          <div className="flex flex-wrap items-center gap-4">
-            <MemberAvatar
-              fileId={removeExistingPhoto ? '' : existing?.foto_file_id || ''}
-              previewUrl={compressedPhoto?.data_url || ''}
-              name={namaLengkap || 'P K'}
-              gender={jenisKelamin}
-              isLiving={statusHidup}
-              size="xl"
-            />
-            <div className="flex-1 min-w-[12rem] space-y-2">
-              <div className="flex flex-wrap gap-2">
-                <label className="min-h-touch px-4 py-2 rounded-full bg-brand-100/80 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-800 text-brand-800 dark:text-brand-200 text-xs font-bold inline-flex items-center gap-2 cursor-pointer hover:bg-brand-100">
-                  <Camera className="w-4 h-4" />
-                  <span>{t('form.choosePhoto')}</span>
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={handlePhotoSelect}
-                    className="sr-only"
-                  />
-                </label>
-
-                {(compressedPhoto || (isEdit && existing?.foto_file_id && !removeExistingPhoto)) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCompressedPhoto(null);
-                      if (existing?.foto_file_id) setRemoveExistingPhoto(true);
-                    }}
-                    className="min-h-touch px-3.5 rounded-full border border-rose-300/80 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-bold inline-flex items-center gap-1 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+          {/* Relasi Pernikahan saat tambah pasangan */}
+          {!isEdit && addMode === 'spouse' && (
+            <section className="bg-surface rounded-card border border-line p-3.5 sm:p-4 shadow-card space-y-2.5 flex-1 flex flex-col justify-center section-enter">
+              <p className="text-xs font-bold uppercase tracking-wider text-faint">
+                {t('form.marriageSection')}
+              </p>
+              {admin && (
+                <div>
+                  <label className="block text-sm font-bold text-ink mb-1">{t('form.partnerWith')}</label>
+                  <select
+                    form="member-form"
+                    value={targetId}
+                    onChange={(e) => setTargetId(e.target.value)}
+                    className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
                   >
-                    <X className="w-4 h-4" />
-                    <span>{t('form.removePhoto')}</span>
-                  </button>
+                    <option value="">{t('form.selectMember')}</option>
+                    {activeMembers.map((a) => (
+                      <option key={a.id_anggota} value={a.id_anggota}>
+                        {a.nama_lengkap} (#{a.kode_unik})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+                <div className="sm:col-span-7">
+                  <label className="block text-sm font-bold text-ink mb-1">{t('form.marriageStatus')}</label>
+                  <select
+                    form="member-form"
+                    value={marriageStatus}
+                    onChange={(e) => setMarriageStatus(e.target.value)}
+                    className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
+                  >
+                    <option value="Aktif">{t('common.marriedActive')}</option>
+                    <option value="Cerai">{t('common.marriedDivorced')}</option>
+                    <option value="Wafat">{t('common.marriedWidowed')}</option>
+                  </select>
+                </div>
+                <div className="sm:col-span-5">
+                  <label className="block text-sm font-bold text-ink mb-1">{t('form.spouseOrder')}</label>
+                  <input
+                    form="member-form"
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={spouseOrder}
+                    onChange={(e) => setSpouseOrder(e.target.value)}
+                    placeholder="1"
+                    className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
+                  />
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Orang Tua (ketika mode anak/mandiri atau edit anak/admin) */}
+          {((!isEdit && addMode !== 'spouse') || canEditLineageOnEdit) && (
+            <section
+              className={`bg-surface rounded-card border border-line p-3.5 sm:p-4 shadow-card space-y-2.5 ${
+                !hasEditExtras ? 'flex-1' : ''
+              }`}
+            >
+              <p className="text-xs font-bold uppercase tracking-wider text-faint">
+                {t('form.lineageSection')}
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2.5">
+                <div>
+                  <label className="block text-sm font-bold text-ink mb-1">{t('form.fatherLabel')}</label>
+                  <select
+                    form="member-form"
+                    value={idAyah}
+                    disabled={!admin && byId.get(user?.id_anggota)?.jenis_kelamin === 'L'}
+                    onChange={(e) => setIdAyah(e.target.value)}
+                    className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold disabled:opacity-70"
+                  >
+                    <option value="">{t('form.noneSelected')}</option>
+                    {fatherOptions.map((a) => (
+                      <option key={a.id_anggota} value={a.id_anggota}>
+                        {a.nama_lengkap} (#{a.kode_unik})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-ink mb-1">{t('form.motherLabel')}</label>
+                  <select
+                    form="member-form"
+                    value={idIbu}
+                    disabled={!admin && byId.get(user?.id_anggota)?.jenis_kelamin === 'P'}
+                    onChange={(e) => setIdIbu(e.target.value)}
+                    className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold disabled:opacity-70"
+                  >
+                    <option value="">{t('form.noneSelected')}</option>
+                    {motherOptions.map((a) => (
+                      <option key={a.id_anggota} value={a.id_anggota}>
+                        {a.nama_lengkap} (#{a.kode_unik})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </section>
+          )}
+        </div>
+
+        {/* Blok B: Kolom Kanan (7 cols) — Form Biodata Utama & Tombol Simpan */}
+        <form
+          id="member-form"
+          onSubmit={handleSubmit}
+          className={`flex flex-col min-w-0 ${
+            hasEditExtras ? 'lg:col-start-6 lg:col-span-7 lg:row-start-1 lg:row-span-2' : 'lg:col-span-7'
+          }`}
+          noValidate
+        >
+          <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card flex-1 flex flex-col justify-between gap-3.5">
+            <div className="space-y-3">
+              {/* Baris 1: Nama Lengkap & Jenis Kelamin */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="f-nama" className="block text-sm font-bold text-ink mb-1.5">
+                    {t('form.fullName')} *
+                  </label>
+                  <input
+                    id="f-nama"
+                    type="text"
+                    required
+                    maxLength={120}
+                    value={namaLengkap}
+                    onChange={(e) => setNamaLengkap(e.target.value)}
+                    placeholder={t('form.fullNamePlaceholder')}
+                    className="w-full min-h-touch px-3.5 py-2 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-ink mb-1.5">{t('form.gender')}</label>
+                  <SegmentedPillControl
+                    ariaLabel={t('form.gender')}
+                    value={jenisKelamin}
+                    onChange={setJenisKelamin}
+                    fullWidth
+                    tone="brand"
+                    className="bg-surface-2"
+                    buttonClassName="min-w-0 text-xs sm:text-sm"
+                    options={[
+                      { value: 'L', label: t('common.male'), disabled: genderLocked },
+                      { value: 'P', label: t('common.female'), disabled: genderLocked }
+                    ]}
+                  />
+                  {genderLocked && isEdit && (
+                    <p className="text-xs text-muted mt-1">{t('form.genderLockedHint')}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Baris 2: Format Tanggal Lahir */}
+              <div className="space-y-2">
+                <label className="block text-sm font-bold text-ink">{t('form.birthModeLabel')}</label>
+                <SegmentedPillControl
+                  ariaLabel={t('form.birthModeLabel')}
+                  value={birthMode}
+                  onChange={setBirthMode}
+                  fullWidth
+                  tone="brand"
+                  className="bg-surface-2"
+                  buttonClassName="min-w-[5.5rem] sm:min-w-0"
+                  options={[
+                    { value: 'full', label: t('form.birthModeFull') },
+                    { value: 'year', label: t('form.birthModeYear') },
+                    { value: 'empty', label: t('form.birthModeEmpty') }
+                  ]}
+                />
+
+                {birthMode === 'full' && (
+                  <DatePicker
+                    id="f-birth-full"
+                    value={birthFull}
+                    onChange={setBirthFull}
+                    maxDate={getLocalTodayIso()}
+                    ariaLabel={t('form.birthModeFull')}
+                  />
+                )}
+                {birthMode === 'year' && (
+                  <input
+                    type="number"
+                    min="1000"
+                    max={new Date().getFullYear()}
+                    value={birthYear}
+                    onChange={(e) => setBirthYear(e.target.value)}
+                    placeholder={t('form.yearPlaceholder')}
+                    className="w-full min-h-touch px-3.5 py-2 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
+                  />
                 )}
               </div>
 
-              <p className="text-xs text-muted">
-                {compressedPhoto
-                  ? t('form.compressedInfo', {
-                      kb: Math.max(1, Math.round(compressedPhoto.size / 1024)),
-                      mime: compressedPhoto.mime_type
-                    })
-                  : removeExistingPhoto
-                  ? t('form.photoRemovedPending')
-                  : t('form.photoHint')}
-              </p>
-            </div>
-          </div>
-        </section>
+              {/* Baris 3: Status Hidup & Status Anak */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-bold text-ink mb-1.5">{t('form.livingStatus')}</label>
+                  <SegmentedPillControl
+                    ariaLabel={t('form.livingStatus')}
+                    value={statusHidup}
+                    onChange={setStatusHidup}
+                    fullWidth
+                    tone="pine"
+                    className="bg-surface-2"
+                    options={[
+                      { value: true, label: t('common.living') },
+                      { value: false, label: t('common.deceased') }
+                    ]}
+                  />
+                </div>
 
-        {/* Relasi Pernikahan saat tambah pasangan */}
-        {!isEdit && addMode === 'spouse' && (
-          <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3">
-            <p className="text-xs font-bold uppercase tracking-wider text-faint">
-              {t('form.marriageSection')}
-            </p>
-            {admin && (
-              <div>
-                <label className="block text-sm font-bold text-ink mb-1">{t('form.partnerWith')}</label>
-                <select
-                  value={targetId}
-                  onChange={(e) => setTargetId(e.target.value)}
-                  className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
-                >
-                  <option value="">{t('form.selectMember')}</option>
-                  {activeMembers.map((a) => (
-                    <option key={a.id_anggota} value={a.id_anggota}>
-                      {a.nama_lengkap} (#{a.kode_unik})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <div className="flex flex-wrap gap-3">
-              <div className="flex-1 min-w-[9rem]">
-                <label className="block text-sm font-bold text-ink mb-1">{t('form.marriageStatus')}</label>
-                <select
-                  value={marriageStatus}
-                  onChange={(e) => setMarriageStatus(e.target.value)}
-                  className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
-                >
-                  <option value="Aktif">{t('common.marriedActive')}</option>
-                  <option value="Cerai">{t('common.marriedDivorced')}</option>
-                  <option value="Wafat">{t('common.marriedWidowed')}</option>
-                </select>
-              </div>
-              <div className="w-36">
-                <label className="block text-sm font-bold text-ink mb-1">{t('form.spouseOrder')}</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={spouseOrder}
-                  onChange={(e) => setSpouseOrder(e.target.value)}
-                  placeholder="1"
-                  className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold"
-                />
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Biodata Utama */}
-        <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-4">
-          <div>
-            <label htmlFor="f-nama" className="block text-sm font-bold text-ink mb-1.5">
-              {t('form.fullName')} *
-            </label>
-            <input
-              id="f-nama"
-              type="text"
-              required
-              maxLength={120}
-              value={namaLengkap}
-              onChange={(e) => setNamaLengkap(e.target.value)}
-              placeholder={t('form.fullNamePlaceholder')}
-              className="w-full min-h-touch px-4 py-2.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-ink mb-1.5">{t('form.gender')}</label>
-            <SegmentedPillControl
-              ariaLabel={t('form.gender')}
-              value={jenisKelamin}
-              onChange={setJenisKelamin}
-              fullWidth
-              tone="brand"
-              className="bg-surface-2"
-              buttonClassName="min-w-[8rem] text-sm"
-              options={[
-                { value: 'L', label: t('common.male'), disabled: genderLocked },
-                { value: 'P', label: t('common.female'), disabled: genderLocked }
-              ]}
-            />
-            {genderLocked && isEdit && (
-              <p className="text-xs text-muted mt-1">{t('form.genderLockedHint')}</p>
-            )}
-          </div>
-
-          {/* Tanggal Lahir 3 Mode */}
-          <div className="space-y-2">
-            <label className="block text-sm font-bold text-ink">{t('form.birthModeLabel')}</label>
-            <SegmentedPillControl
-              ariaLabel={t('form.birthModeLabel')}
-              value={birthMode}
-              onChange={setBirthMode}
-              fullWidth
-              tone="brand"
-              className="bg-surface-2"
-              buttonClassName="min-w-[6.5rem]"
-              options={[
-                { value: 'full', label: t('form.birthModeFull') },
-                { value: 'year', label: t('form.birthModeYear') },
-                { value: 'empty', label: t('form.birthModeEmpty') }
-              ]}
-            />
-
-            {birthMode === 'full' && (
-              <DatePicker
-                id="f-birth-full"
-                value={birthFull}
-                onChange={setBirthFull}
-                maxDate={getLocalTodayIso()}
-                ariaLabel={t('form.birthModeFull')}
-              />
-            )}
-            {birthMode === 'year' && (
-              <input
-                type="number"
-                min="1000"
-                max={new Date().getFullYear()}
-                value={birthYear}
-                onChange={(e) => setBirthYear(e.target.value)}
-                placeholder={t('form.yearPlaceholder')}
-                className="w-full min-h-touch px-4 py-2.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
-              />
-            )}
-          </div>
-
-          {/* Status Hidup & Anak */}
-          <div className="flex flex-wrap gap-3">
-            <div className="flex-1 min-w-[12rem]">
-              <label className="block text-sm font-bold text-ink mb-1.5">{t('form.livingStatus')}</label>
-              <SegmentedPillControl
-                ariaLabel={t('form.livingStatus')}
-                value={statusHidup}
-                onChange={setStatusHidup}
-                fullWidth
-                tone="pine"
-                className="bg-surface-2"
-                options={[
-                  { value: true, label: t('common.living') },
-                  { value: false, label: t('common.deceased') }
-                ]}
-              />
-            </div>
-
-            <div className="flex-1 min-w-[12rem]">
-              <label className="block text-sm font-bold text-ink mb-1.5">{t('form.childStatus')}</label>
-              <SegmentedPillControl
-                ariaLabel={t('form.childStatus')}
-                value={statusAnak}
-                onChange={setStatusAnak}
-                fullWidth
-                tone="heritage"
-                className="bg-surface-2"
-                options={[
-                  { value: 'Kandung', label: t('common.biological') },
-                  { value: 'Angkat', label: t('common.adopted') }
-                ]}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            <div className="w-36">
-              <label htmlFor="f-urutan" className="block text-sm font-bold text-ink mb-1">
-                {t('form.childOrder')}
-              </label>
-              <input
-                id="f-urutan"
-                type="number"
-                min="1"
-                max="30"
-                value={urutanAnak}
-                onChange={(e) => setUrutanAnak(e.target.value)}
-                placeholder={t('form.childOrderPlaceholder')}
-                className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
-              />
-            </div>
-
-            <div className="flex-1 min-w-[11rem]">
-              <label htmlFor="f-domisili" className="block text-sm font-bold text-ink mb-1">
-                {t('form.domicile')}
-              </label>
-              <input
-                id="f-domisili"
-                type="text"
-                maxLength={120}
-                value={domisili}
-                onChange={(e) => setDomisili(e.target.value)}
-                placeholder={t('form.domicilePlaceholder')}
-                className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="f-wa" className="block text-sm font-bold text-ink mb-1">
-              {t('form.noWa')}
-            </label>
-            <input
-              id="f-wa"
-              type="tel"
-              value={noWa}
-              onChange={(e) => setNoWa(e.target.value)}
-              placeholder={t('form.noWaPlaceholder')}
-              className="w-full min-h-touch px-4 py-2.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
-            />
-          </div>
-        </section>
-
-        {/* Orang Tua (ketika mode anak/mandiri atau edit anak/admin) */}
-        {((!isEdit && addMode !== 'spouse') || canEditLineageOnEdit) && (
-          <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3">
-            <p className="text-xs font-bold uppercase tracking-wider text-faint">
-              {t('form.lineageSection')}
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <div className="flex-1 min-w-[11rem]">
-                <label className="block text-sm font-bold text-ink mb-1">{t('form.fatherLabel')}</label>
-                <select
-                  value={idAyah}
-                  disabled={!admin && byId.get(user?.id_anggota)?.jenis_kelamin === 'L'}
-                  onChange={(e) => setIdAyah(e.target.value)}
-                  className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold disabled:opacity-70"
-                >
-                  <option value="">{t('form.noneSelected')}</option>
-                  {fatherOptions.map((a) => (
-                    <option key={a.id_anggota} value={a.id_anggota}>
-                      {a.nama_lengkap} (#{a.kode_unik})
-                    </option>
-                  ))}
-                </select>
+                <div>
+                  <label className="block text-sm font-bold text-ink mb-1.5">{t('form.childStatus')}</label>
+                  <SegmentedPillControl
+                    ariaLabel={t('form.childStatus')}
+                    value={statusAnak}
+                    onChange={setStatusAnak}
+                    fullWidth
+                    tone="heritage"
+                    className="bg-surface-2"
+                    options={[
+                      { value: 'Kandung', label: t('common.biological') },
+                      { value: 'Angkat', label: t('common.adopted') }
+                    ]}
+                  />
+                </div>
               </div>
 
-              <div className="flex-1 min-w-[11rem]">
-                <label className="block text-sm font-bold text-ink mb-1">{t('form.motherLabel')}</label>
-                <select
-                  value={idIbu}
-                  disabled={!admin && byId.get(user?.id_anggota)?.jenis_kelamin === 'P'}
-                  onChange={(e) => setIdIbu(e.target.value)}
-                  className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink text-sm font-semibold disabled:opacity-70"
-                >
-                  <option value="">{t('form.noneSelected')}</option>
-                  {motherOptions.map((a) => (
-                    <option key={a.id_anggota} value={a.id_anggota}>
-                      {a.nama_lengkap} (#{a.kode_unik})
-                    </option>
-                  ))}
-                </select>
+              {/* Baris 4: Urutan Anak, Domisili & Nomor WhatsApp */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label htmlFor="f-urutan" className="block text-sm font-bold text-ink mb-1">
+                    {t('form.childOrder')}
+                  </label>
+                  <input
+                    id="f-urutan"
+                    type="number"
+                    min="1"
+                    max="30"
+                    value={urutanAnak}
+                    onChange={(e) => setUrutanAnak(e.target.value)}
+                    placeholder={t('form.childOrderPlaceholder')}
+                    className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="f-domisili" className="block text-sm font-bold text-ink mb-1">
+                    {t('form.domicile')}
+                  </label>
+                  <input
+                    id="f-domisili"
+                    type="text"
+                    maxLength={120}
+                    value={domisili}
+                    onChange={(e) => setDomisili(e.target.value)}
+                    placeholder={t('form.domicilePlaceholder')}
+                    className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="f-wa" className="block text-sm font-bold text-ink mb-1">
+                    {t('form.noWa')}
+                  </label>
+                  <input
+                    id="f-wa"
+                    type="tel"
+                    value={noWa}
+                    onChange={(e) => setNoWa(e.target.value)}
+                    placeholder={t('form.noWaPlaceholder')}
+                    className="w-full min-h-touch px-3.5 rounded-tile border border-[var(--line-2)] bg-surface-2 text-ink placeholder:text-faint text-sm font-semibold"
+                  />
+                </div>
               </div>
             </div>
-          </section>
-        )}
 
-        <button
-          type="submit"
-          disabled={saving || !isOnline}
-          className="w-full min-h-cta px-5 py-2 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-sm"
-        >
-          <Save className="w-4 h-4" />
-          <span>{saving ? t('common.saving') : t('common.save')}</span>
-        </button>
-      </form>
-
-      {/* Kelola Status Pernikahan Eksisting pada Mode Edit */}
-      {isEdit && editableMarriages.length > 0 && (
-        <section className="bg-surface rounded-card border border-line p-4 sm:p-5 shadow-card space-y-3">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-faint">
-            {t('form.manageMarriagesTitle')}
-          </h2>
-          {editableMarriages.map(({ pernikahan, partner }) => {
-            const ed = marriageEdits[pernikahan.id_pernikahan] || {
-              status_pernikahan: pernikahan.status_pernikahan,
-              urutan_pasangan: String(pernikahan.urutan_pasangan || '')
-            };
-            return (
-              <div
-                key={pernikahan.id_pernikahan}
-                className="p-3 rounded-tile bg-surface-2 border border-line flex flex-wrap items-center justify-between gap-2"
+            <div className="pt-3 border-t border-line">
+              <button
+                type="submit"
+                disabled={saving || !isOnline}
+                className="w-full min-h-cta px-5 py-2 rounded-full bg-brand-700 hover:bg-brand-800 disabled:opacity-50 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-sm"
               >
-                <p className="text-sm font-bold text-ink min-w-[8rem] flex-1">
-                  {partner.nama_lengkap}
-                </p>
-                <select
-                  value={ed.status_pernikahan}
-                  onChange={(e) =>
-                    setMarriageEdits((prev) => ({
-                      ...prev,
-                      [pernikahan.id_pernikahan]: { ...ed, status_pernikahan: e.target.value }
-                    }))
-                  }
-                  className="min-h-touch px-3 rounded-tile border border-[var(--line-2)] bg-surface text-ink text-xs font-bold"
-                >
-                  <option value="Aktif">{t('common.marriedActive')}</option>
-                  <option value="Cerai">{t('common.marriedDivorced')}</option>
-                  <option value="Wafat">{t('common.marriedWidowed')}</option>
-                </select>
-                <button
-                  type="button"
-                  onClick={() => handleSaveMarriage(pernikahan.id_pernikahan)}
-                  disabled={!isOnline}
-                  className="min-h-touch px-3.5 rounded-full bg-side text-[var(--on-side)] text-xs font-bold"
-                >
-                  {t('form.saveMarriageBtn')}
-                </button>
-              </div>
-            );
-          })}
-        </section>
-      )}
+                <Save className="w-4 h-4" />
+                <span>{saving ? t('common.saving') : t('common.save')}</span>
+              </button>
+            </div>
+          </section>
+        </form>
 
-      {/* Tombol Hapus Khusus Admin */}
-      {isEdit && canDelete(user) && existing && (
-        <button
-          type="button"
-          onClick={handleDeleteMember}
-          disabled={!isOnline}
-          className="w-full min-h-cta px-4 py-2 rounded-full border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-bold text-sm flex items-center justify-center gap-2"
-        >
-          <Trash2 className="w-4 h-4" />
-          <span>{t('profile.deleteBtn')}</span>
-        </button>
-      )}
+        {/* Blok C: Tambahan Mode Edit (Status Pernikahan Eksisting & Hapus Admin) */}
+        {hasEditExtras && (
+          <div className="lg:col-start-1 lg:col-span-5 flex flex-col gap-3.5 min-w-0">
+            {isEdit && editableMarriages.length > 0 && (
+              <section className="bg-surface rounded-card border border-line p-3.5 sm:p-4 shadow-card space-y-2.5">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-faint">
+                  {t('form.manageMarriagesTitle')}
+                </h2>
+                {editableMarriages.map(({ pernikahan, partner }) => {
+                  const ed = marriageEdits[pernikahan.id_pernikahan] || {
+                    status_pernikahan: pernikahan.status_pernikahan,
+                    urutan_pasangan: String(pernikahan.urutan_pasangan || '')
+                  };
+                  return (
+                    <div
+                      key={pernikahan.id_pernikahan}
+                      className="p-2.5 rounded-tile bg-surface-2 border border-line flex flex-wrap items-center justify-between gap-2"
+                    >
+                      <p className="text-sm font-bold text-ink min-w-[7rem] flex-1">
+                        {partner.nama_lengkap}
+                      </p>
+                      <select
+                        value={ed.status_pernikahan}
+                        onChange={(e) =>
+                          setMarriageEdits((prev) => ({
+                            ...prev,
+                            [pernikahan.id_pernikahan]: { ...ed, status_pernikahan: e.target.value }
+                          }))
+                        }
+                        className="min-h-ctl px-2.5 rounded-tile border border-[var(--line-2)] bg-surface text-ink text-xs font-bold"
+                      >
+                        <option value="Aktif">{t('common.marriedActive')}</option>
+                        <option value="Cerai">{t('common.marriedDivorced')}</option>
+                        <option value="Wafat">{t('common.marriedWidowed')}</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => handleSaveMarriage(pernikahan.id_pernikahan)}
+                        disabled={!isOnline}
+                        className="min-h-ctl px-3 rounded-full bg-side text-[var(--on-side)] text-xs font-bold"
+                      >
+                        {t('form.saveMarriageBtn')}
+                      </button>
+                    </div>
+                  );
+                })}
+              </section>
+            )}
+
+            {isEdit && canDelete(user) && existing && (
+              <button
+                type="button"
+                onClick={handleDeleteMember}
+                disabled={!isOnline}
+                className="w-full min-h-cta px-4 py-2 rounded-full border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-bold text-sm flex items-center justify-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>{t('profile.deleteBtn')}</span>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
